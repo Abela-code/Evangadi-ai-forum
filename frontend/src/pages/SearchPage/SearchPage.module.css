@@ -1,0 +1,14 @@
+/* Styles for SearchPage. Scoped to this component. */
+
+.semanticSearchForm {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.semanticSearchForm input {
+  height: 40px;
+  border: 0;
+  outline: 0;
+}

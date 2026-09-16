@@ -1,0 +1,520 @@
+============================================================
+QUESTION CATEGORIZATION FEATURE - CHANGED FILE CODES
+============================================================
+
+1) backEnd/schema/schema.sql
+------------------------------------------------------------
+CREATE TABLE `questions` (
+    `question_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `question_hash` CHAR(16) NOT NULL UNIQUE,
+    `user_id` INT NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `content` TEXT NOT NULL,
+    `category` VARCHAR(32) NOT NULL DEFAULT 'Other',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (CHAR_LENGTH(`title`) >= 5),
+    CHECK (CHAR_LENGTH(`content`) >= 10),
+
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
+
+    INDEX `idx_questions_user_id` (`user_id`),
+    INDEX `idx_questions_category` (`category`),
+    INDEX `idx_questions_created_at` (`created_at`),
+
+    FULLTEXT KEY `ft_questions_search` (`title`, `content`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+2) backEnd/schema/001_add_question_category.sql
+------------------------------------------------------------
+ALTER TABLE questions
+  ADD COLUMN category VARCHAR(32) NOT NULL DEFAULT 'Other' AFTER content,
+  ADD INDEX idx_questions_category (category);
+
+3) backEnd/src/api/question/service/geminiTextCoach.service.js
+------------------------------------------------------------
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ServiceUnavailableError } from "../../../utility/errors/errors.js";
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_TEXT_MODEL =
+  process.env.GEMINI_TEXT_MODEL || "gemini-3.5-flash-lite";
+
+const QUESTION_CATEGORIES = [
+  "Technology",
+  "Education",
+  "Economy",
+  "Politics",
+  "Health",
+  "Science",
+  "Career",
+  "Business",
+  "Other",
+];
+
+if (!GEMINI_API_KEY) {
+  throw new Error("GEMINI_API_KEY environment variable is required");
+}
+
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const textModel = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
+
+async function fetchGeminiJsonTextResponse(userPrompt) {
+  const result = await textModel.generateContent(userPrompt);
+  const text = result?.response?.text?.();
+  return typeof text === "string" ? text : "";
+}
+
+const classifyQuestionCategoryService = async ({ title, content }) => {
+  const userPrompt = `Classify this forum question into exactly one category.
+
+QUESTION TITLE:
+${title}
+
+QUESTION BODY:
+${content}
+
+Reply with ONLY ONE category name from this exact list:
+${QUESTION_CATEGORIES.join(", ")}
+Do not add punctuation, explanation, markdown, or any other text.`;
+
+  try {
+    const raw = await fetchGeminiJsonTextResponse(userPrompt);
+    const category = raw.trim().replace(/^['"]|['"]$/g, "");
+    return (
+      QUESTION_CATEGORIES.find(
+        (allowedCategory) =>
+          allowedCategory.toLowerCase() === category.toLowerCase(),
+      ) || "Other"
+    );
+  } catch (error) {
+    console.error("classifyQuestionCategoryService:", error);
+    return "Other";
+  }
+};
+
+export {
+  QUESTION_CATEGORIES,
+  classifyQuestionCategoryService,
+  generateQuestionDraftCoachService,
+  assessAnswerAgainstQuestionService,
+  answerFromRagChunksService,
+};
+
+4) backEnd/src/api/question/service/question.service.js
+------------------------------------------------------------
+import crypto from "crypto";
+import { safeExecute } from "../../../../schema/db.config.js";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "../../../utility/errors/errors.js";
+import {
+  findSimilarQuestionsByQuestionId,
+  findSimilarQuestionsByText,
+  generateQuestionEmbedding,
+  getVectorConfig,
+  normalizeQuestionText,
+  storeQuestionVector,
+} from "./vector.service.js";
+import {
+  classifyQuestionCategoryService,
+  QUESTION_CATEGORIES,
+} from "./geminiTextCoach.service.js";
+
+const generateQuestionHash = () => crypto.randomBytes(8).toString("hex");
+
+const createQuestionWithVectorService = async (payload) => {
+  const { userId, title, content } = payload;
+
+  const category = await classifyQuestionCategoryService({ title, content });
+  const validatedCategory = QUESTION_CATEGORIES.includes(category)
+    ? category
+    : "Other";
+
+  const insertQuestionSql =
+    "INSERT INTO questions (question_hash, user_id, title, content, category) VALUES (?, ?, ?, ?, ?)";
+
+  const questionHash = generateQuestionHash();
+  let questionResult;
+
+  try {
+    questionResult = await safeExecute(insertQuestionSql, [
+      questionHash,
+      userId,
+      title,
+      content,
+      validatedCategory,
+    ]);
+  } catch (error) {
+    if (error?.code === "ER_NO_REFERENCED_ROW_2") {
+      throw new BadRequestError("User does not exist.");
+    }
+    throw error;
+  }
+
+  const questionId = questionResult.insertId;
+
+  const creationResult = {
+    id: questionId,
+    questionHash,
+    title,
+    content,
+    userId,
+    category: validatedCategory,
+  };
+
+  const sourceText = normalizeQuestionText({
+    title: payload.title,
+  });
+
+  try {
+    const embeddingResult = await generateQuestionEmbedding(sourceText, {
+      questionId: creationResult.id,
+    });
+
+    if (
+      !embeddingResult ||
+      !embeddingResult.embedding ||
+      embeddingResult.embedding.length === 0
+    ) {
+      throw new Error("Gemini API returned an empty or invalid embedding");
+    }
+
+    await storeQuestionVector({
+      questionId: creationResult.id,
+      sourceText,
+      embedding: embeddingResult.embedding,
+      status: "ready",
+    });
+  } catch (error) {
+    console.error("=== FAILED TO STORE VECTOR FOR QUESTION ===");
+    console.error("Question ID:", creationResult.id);
+    console.error("Operation: question creation");
+    console.error("Error:", error);
+
+    await storeQuestionVector({
+      questionId: creationResult.id,
+      sourceText,
+      embedding: [],
+      status: "failed",
+    }).catch((e) => console.error("Failed to save failed status", e));
+  }
+
+  return {
+    question: creationResult,
+  };
+};
+
+const buildQuestionFilters = (filters) => {
+  const conditions = [];
+  const params = [];
+
+  if (filters.search) {
+    conditions.push("(q.title LIKE ? OR q.content LIKE ?)");
+    const searchTerm = `%${filters.search}%`;
+    params.push(searchTerm, searchTerm);
+  }
+
+  if (filters.mine && filters.userId) {
+    conditions.push("q.user_id = ?");
+    params.push(filters.userId);
+  }
+
+  if (filters.category && QUESTION_CATEGORIES.includes(filters.category)) {
+    conditions.push("q.category = ?");
+    params.push(filters.category);
+  }
+
+  if (conditions.length === 0) {
+    return { whereClause: "", params };
+  }
+
+  return {
+    whereClause: `WHERE ${conditions.join(" AND ")}`,
+    params,
+  };
+};
+
+const getQuestionsService = async (filters) => {
+  const normalizedLimit = 100;
+  const sortColumn = "q.created_at";
+  const normalizedSortOrder = "DESC";
+
+  const { whereClause, params } = buildQuestionFilters(filters);
+
+  const listSql = `
+    SELECT
+      q.question_id AS id,
+      q.question_hash AS questionHash,
+      q.title,
+      q.content,
+      q.category,
+      q.created_at AS createdAt,
+      q.updated_at AS updatedAt,
+      u.user_id AS userId,
+      u.first_name AS firstName,
+      u.last_name AS lastName,
+      COUNT(DISTINCT a.answer_id) AS answerCount
+    FROM questions q
+    JOIN users u ON u.user_id = q.user_id
+    LEFT JOIN answers a ON a.question_id = q.question_id
+    ${whereClause}
+    GROUP BY q.question_id, u.user_id
+    ORDER BY ${sortColumn} ${normalizedSortOrder}
+    LIMIT ${normalizedLimit}
+  `;
+
+  const rows = await safeExecute(listSql, params);
+
+  return {
+    data: rows.map((question) => ({
+      id: question.id,
+      questionHash: question.questionHash,
+      title: question.title,
+      content: question.content,
+      category: question.category,
+      answerCount: question.answerCount,
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+      author: {
+        id: question.userId,
+        firstName: question.firstName,
+        lastName: question.lastName,
+      },
+    })),
+    meta: {
+      limit: normalizedLimit,
+      total: rows.length,
+      sortBy: "newest",
+      sortOrder: normalizedSortOrder,
+    },
+  };
+};
+
+5) backEnd/src/api/question/controller/question.controller.js
+------------------------------------------------------------
+const getQuestionsController = async (req, res, next) => {
+  try {
+    const filters = {
+      search: req.query.search,
+      category: req.query.category,
+      mine: req.query.mine,
+      userId: req.user.id,
+    };
+
+    const result = await getQuestionsService(filters);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Questions fetched successfully.",
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+6) backEnd/src/api/question/validations/question.validation.js
+------------------------------------------------------------
+import { body, param, query } from "express-validator";
+import { validationErrorHandler } from "../../../middleware/validation-handler.js";
+import { QUESTION_CATEGORIES } from "../service/geminiTextCoach.service.js";
+
+const getQuestionsValidation = [
+  query("search")
+    .optional()
+    .isString()
+    .withMessage("Search must be a string")
+    .trim(),
+  query("mine")
+    .optional()
+    .isBoolean()
+    .withMessage("Mine must be a boolean")
+    .toBoolean(),
+  query("category")
+    .optional()
+    .isIn(QUESTION_CATEGORIES)
+    .withMessage("Category must be one of the supported categories"),
+  validationErrorHandler,
+];
+
+7) frontend/src/pages/Questions/Questions.jsx
+------------------------------------------------------------
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { PlusCircle } from "lucide-react";
+import { getAllQuestions } from "../../api/question.api";
+import QuestionCard from "../../components/QuestionCard/QuestionCard";
+import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
+import EmptyState from "../../components/EmptyState/EmptyState";
+import { getErrorMessage, unwrapArray } from "../../utils/data";
+import btn from "../../styles/buttons.module.css";
+import ui from "../../styles/pageStates.module.css";
+
+const QUESTION_CATEGORIES = [
+  "Technology",
+  "Education",
+  "Economy",
+  "Politics",
+  "Health",
+  "Science",
+  "Career",
+  "Business",
+  "Other",
+];
+
+export default function Questions() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("search") || "";
+  const category = searchParams.get("category") || "";
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const params = {};
+        if (search) params.search = search;
+        if (category) params.category = category;
+        const data = await getAllQuestions(params);
+        setQuestions(unwrapArray(data, ["questions", "results"]));
+      } catch (err) {
+        setError(getErrorMessage(err, "Could not load questions."));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, [search, category]);
+
+  function handleCategoryChange(event) {
+    const nextParams = new URLSearchParams(searchParams);
+    if (event.target.value) nextParams.set("category", event.target.value);
+    else nextParams.delete("category");
+    setSearchParams(nextParams);
+  }
+
+  return (
+    <div className={ui.pageStack}>
+      <section className={ui.pageHeading}>
+        <div>
+          <span className={ui.eyebrow}>Community</span>
+          <h1>{search ? `Search: ${search}` : "All Questions"}</h1>
+          <p>Browse questions posted by forum members.</p>
+        </div>
+
+        <div className={ui.questionTools}>
+          <label className={ui.categoryFilter}>
+            Category
+            <select value={category} onChange={handleCategoryChange}>
+              <option value="">All categories</option>
+              {QUESTION_CATEGORIES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Link to="/questions/ask" className={btn.primaryButton}>
+            <PlusCircle size={18} />
+            Ask Question
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+8) frontend/src/components/QuestionCard/QuestionCard.jsx
+------------------------------------------------------------
+import { MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
+import { getAuthorInitials, getAuthorName } from "../../utils/data";
+import styles from "./QuestionCard.module.css";
+import ui from "../../styles/pageStates.module.css";
+
+export default function QuestionCard({ question, yours = false }) {
+  const hash = question.question_hash || question.questionHash || question.hash;
+  const author = getAuthorName(question);
+  const replies =
+    question.answer_count ??
+    question.answers_count ??
+    question.answerCount ??
+    0;
+  const content = question.content || question.description || "";
+  const initials = getAuthorInitials(question);
+  return (
+    <Link
+      to={`/questions/${hash}`}
+      className={`${ui.threadRow}${yours ? ` ${ui.yours}` : ""}`}
+    >
+      <span className={ui.threadAvatar}>{initials}</span>
+      <div className={styles.threadMain}>
+        <div className={styles.threadTitleRow}>
+          <h3>{question.title}</h3>
+          {yours && <span className={styles.yoursBadge}>Yours</span>}
+        </div>
+        <span className={styles.categoryBadge}>
+          {question.category || "Other"}
+        </span>
+        <p>{content}</p>
+        <div className={styles.threadMeta}>
+          <span>
+            <MessageSquare size={13} /> {replies} replies
+          </span>
+          <span>Recently by {yours ? "You" : author}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+9) frontend/src/pages/QuestionDetail/QuestionDetail.jsx
+------------------------------------------------------------
+<h1>{question?.title}</h1>
+
+<span className={styles.categoryBadge}>
+  {question?.category || "Other"}
+</span>
+
+<div className={`${styles.discussionContent} ${ui.proseContent}`}>
+  <MarkdownContent>
+    {question?.content || question?.description || ""}
+  </MarkdownContent>
+</div>
+
+10) frontend/src/components/QuestionCard/QuestionCard.module.css
+------------------------------------------------------------
+.categoryBadge {
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #0f6870;
+  background: #e4f7f4;
+  border: 1px solid #b9e8df;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+11) frontend/src/pages/QuestionDetail/QuestionDetail.module.css
+------------------------------------------------------------
+.categoryBadge {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: #0f6870;
+  background: #e4f7f4;
+  border: 1px solid #b9e8df;
+  border-radius: 4px;
+  padding: 4px 7px;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+============================================================
+END OF FILE
+============================================================
