@@ -4,8 +4,9 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  color: #64748b;
+  color: var(--slate-600);
   font-size: 0.72rem;
+  margin-top: 6px;
 }
 
 .formBottomActions {
@@ -15,4 +16,17 @@
   display: flex;
   justify-content: flex-end;
   gap: 14px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+  .aiSuggestionRow,
+  .formBottomActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formBottomActions button {
+    width: 100%;
+  }
 }

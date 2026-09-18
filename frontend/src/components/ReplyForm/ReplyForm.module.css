@@ -7,11 +7,11 @@
 }
 
 .replyFormDisabled {
-  background: #f8fafb;
-  border: 1px dashed #cbd5df;
-  border-radius: 8px;
+  background: linear-gradient(180deg, #f8fafb 0%, #f4f7fa 100%);
+  border: 1px dashed rgba(148, 163, 184, 0.7);
+  border-radius: 12px;
   padding: 18px;
-  color: #64748b;
+  color: var(--slate-600);
   text-align: center;
 }
 
@@ -20,7 +20,7 @@
   align-items: center;
   gap: 12px;
   margin-top: 12px;
-  color: #64748b;
+  color: var(--slate-600);
   font-size: 0.71rem;
 }
 

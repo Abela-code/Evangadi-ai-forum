@@ -7,21 +7,23 @@
 .threadTitleRow {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
 }
 
 .threadTitleRow h3 {
-  font-size: 0.84rem;
-  margin: 0 0 5px;
+  font-size: 0.92rem;
+  margin: 0 0 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--navy-900);
 }
 
 .threadMain p {
-  font-size: 0.74rem;
-  line-height: 1.4;
-  color: #556579;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--slate-600);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -29,37 +31,41 @@
 }
 
 .categoryBadge {
-  display: inline-block;
-  margin-bottom: 5px;
-  color: #0f6870;
-  background: #e4f7f4;
-  border: 1px solid #b9e8df;
-  border-radius: 4px;
-  padding: 3px 6px;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: #0d6c79;
+  background: linear-gradient(180deg, #ebfcf8 0%, #dffaf5 100%);
+  border: 1px solid rgba(13, 108, 121, 0.16);
+  border-radius: 999px;
+  padding: 4px 8px;
   font-size: 0.58rem;
   font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .threadMeta {
   display: flex;
-  gap: 16px;
-  margin-top: 9px;
-  color: #657489;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-top: 10px;
+  color: var(--slate-500);
   font-size: 0.64rem;
 }
 
 .threadMeta span {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .yoursBadge {
-  background: #fff0e5;
-  color: #d95500;
+  background: rgba(255, 107, 44, 0.08);
+  color: var(--orange-deep);
   text-transform: uppercase;
   font-size: 0.56rem;
   font-weight: 800;
-  padding: 4px 6px;
-  border-radius: 4px;
+  padding: 5px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
 }

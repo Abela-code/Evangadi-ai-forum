@@ -130,6 +130,18 @@ const assessAnswerAgainstQuestionValidation = [
   validationErrorHandler,
 ];
 
+const translateQuestionValidation = [
+  param("questionHash")
+    .isString()
+    .withMessage("Question hash is required")
+    .matches(/^[a-f0-9]{16}$/)
+    .withMessage("Question hash must be a 16-character lowercase hex string"),
+  body("targetLanguage")
+    .isIn(["en", "am", "fr", "es"])
+    .withMessage("Target language must be one of: en, am, fr, es"),
+  validationErrorHandler,
+];
+
 export {
   createQuestionValidation,
   getQuestionsValidation,
@@ -138,4 +150,5 @@ export {
   getSimilarQuestionsValidation,
   generateQuestionDraftCoachValidation,
   assessAnswerAgainstQuestionValidation,
+  translateQuestionValidation,
 };

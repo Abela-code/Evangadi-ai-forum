@@ -13,6 +13,7 @@ import {
   getAllQuestions,
   getQuestion,
   getSimilarQuestions,
+  translateQuestion,
 } from "../../api/question.api";
 
 import {
@@ -30,6 +31,7 @@ import EmptyState from "../../components/EmptyState/EmptyState";
 import MarkdownContent from "../../components/MarkdownContent/MarkdownContent";
 
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 import {
   getAuthorName,
@@ -108,6 +110,7 @@ function makeFallbackTerms(title = "") {
 export default function QuestionDetail() {
   const { questionHash } = useParams();
   const { user } = useAuth();
+  const { t, languages } = useLanguage();
 
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -127,6 +130,10 @@ export default function QuestionDetail() {
   const [actionError, setActionError] = useState("");
   const [fitResult, setFitResult] = useState(null);
   const [shareStatus, setShareStatus] = useState("");
+  const [translationLanguage, setTranslationLanguage] = useState("am");
+  const [translation, setTranslation] = useState(null);
+  const [translationLoading, setTranslationLoading] = useState(false);
+  const [translationError, setTranslationError] = useState("");
 
   const loadQuestion = useCallback(async () => {
     const data = await getQuestion(questionHash);
@@ -219,6 +226,8 @@ export default function QuestionDetail() {
       setLoading(true);
       setError("");
       setSimilar([]);
+      setTranslation(null);
+      setTranslationError("");
 
       try {
         const questionData = await loadQuestion();
@@ -377,6 +386,23 @@ export default function QuestionDetail() {
     }
   }
 
+  async function translate() {
+    setTranslationLoading(true);
+    setTranslationError("");
+    try {
+      const response = await translateQuestion(
+        questionHash,
+        translationLanguage,
+      );
+      setTranslation(response?.data ?? response);
+    } catch (err) {
+      setTranslation(null);
+      setTranslationError(getErrorMessage(err, t("translationError")));
+    } finally {
+      setTranslationLoading(false);
+    }
+  }
+
   if (loading) {
     return <LoadingSpinner label="Loading question..." />;
   }
@@ -421,6 +447,47 @@ export default function QuestionDetail() {
                 {question?.content || question?.description || ""}
               </MarkdownContent>
             </div>
+
+            <section className={styles.translationPanel}>
+              <div className={styles.translationHeader}>
+                <strong>{t("translateQuestion")}</strong>
+                <label>
+                  <span>{t("targetLanguage")}</span>
+                  <select
+                    value={translationLanguage}
+                    onChange={(event) =>
+                      setTranslationLanguage(event.target.value)
+                    }
+                  >
+                    {languages.map((item) => (
+                      <option key={item.code} value={item.code}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className={btn.secondaryButton}
+                  onClick={translate}
+                  disabled={translationLoading}
+                >
+                  {translationLoading ? t("translating") : t("translate")}
+                </button>
+              </div>
+              {translationError && (
+                <p className={styles.translationError}>{translationError}</p>
+              )}
+              {translation && (
+                <div className={styles.translationResult}>
+                  <h2>{t("translatedQuestion")}</h2>
+                  <h3>{translation.translatedTitle}</h3>
+                  <MarkdownContent>
+                    {translation.translatedContent}
+                  </MarkdownContent>
+                </div>
+              )}
+            </section>
 
             <div className={styles.discussionActions}>
               <button

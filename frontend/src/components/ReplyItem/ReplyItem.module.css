@@ -1,20 +1,23 @@
 /* Styles for ReplyItem. Scoped to this component. */
 
 .replyItem {
-  background: #fff;
-  border: 1px solid #dbe3ea;
-  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(249,251,253,1) 100%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
   padding: 20px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
 }
 
 .replyHeader {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .replyAuthor {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
@@ -22,24 +25,53 @@
   display: grid;
 }
 
+.replyAuthor strong {
+  color: var(--navy-900);
+}
+
 .replyAuthor small {
-  color: #64748b;
+  color: var(--slate-500);
   font-size: 0.65rem;
 }
 
+.replyAuthor :global(.reply-avatar) {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #fff1db 0%, #ffe0b8 100%);
+  color: var(--orange-deep);
+  border: 1px solid rgba(255, 107, 44, 0.14);
+}
+
 .replyContent {
-  font-size: 0.86rem;
-  color: #334155;
-  line-height: 1.65;
+  font-size: 0.88rem;
+  color: var(--navy-700);
+  line-height: 1.7;
+  margin-top: 14px;
 }
 
 .replyEditActions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  margin-top: 16px;
 }
 
 .replyActions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
+}
+
+@media (max-width: 700px) {
+  .replyHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .replyActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }

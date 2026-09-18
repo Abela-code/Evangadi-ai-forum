@@ -3,28 +3,30 @@
 .brandMark {
   width: 38px;
   height: 38px;
-  border-radius: 8px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   color: #fff;
-  background: var(--orange);
+  background: linear-gradient(180deg, var(--orange) 0%, var(--orange-dark) 100%);
+  box-shadow: 0 10px 18px rgba(255, 107, 44, 0.18);
 }
 
 .brandMark.inverse {
   background: #fff;
   color: var(--orange);
+  box-shadow: none;
 }
 
 .eyebrow {
-  color: #d74e00;
+  color: var(--orange-deep);
   font-weight: 800;
   font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--slate-500);
 }
 
 .formField {
@@ -36,60 +38,53 @@
 label {
   font-size: 0.88rem;
   font-weight: 700;
+  color: var(--navy-800);
 }
 
 small {
-  color: #64748b;
+  color: var(--slate-500);
   font-size: 0.76rem;
 }
 
-input {
+input,
+textarea,
+select {
   width: 100%;
-  border: 1px solid #d4dde6;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
   padding: 12px 13px;
   outline: none;
+  color: var(--navy-800);
 }
 
-textarea {
-  width: 100%;
-  border: 1px solid #d4dde6;
-  border-radius: 8px;
-  background: #fff;
-  padding: 12px 13px;
-  outline: none;
+input::placeholder,
+textarea::placeholder {
+  color: #96a3b6;
 }
 
 .replyEdit textarea {
   width: 100%;
-  border: 1px solid #d4dde6;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
   padding: 12px 13px;
   outline: none;
 }
 
-input:focus {
-  border-color: #f58a48;
-  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08);
-}
-
-textarea:focus {
-  border-color: #f58a48;
-  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08);
-}
-
+input:focus,
+textarea:focus,
+select:focus,
 .replyEdit textarea:focus {
-  border-color: #f58a48;
-  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08);
+  border-color: rgba(255, 107, 44, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 107, 44, 0.08);
 }
 
 .formError {
   color: #b42318;
   background: #fff2f0;
   border: 1px solid #ffd6d1;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.86rem;
 }
@@ -100,10 +95,11 @@ textarea:focus {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #7fe1eb;
+  background: linear-gradient(180deg, #a6f1ea 0%, #7ed9d0 100%);
   color: #0f3b45;
   font-weight: 700;
   font-size: 0.78rem;
+  box-shadow: 0 8px 20px rgba(126, 217, 208, 0.25);
 }
 
 .avatar.small {
@@ -117,9 +113,10 @@ textarea:focus {
 }
 
 .panel {
-  background: #fff;
-  border: 1px solid #dbe3ea;
-  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
 
 .screenCenter {
@@ -146,43 +143,51 @@ textarea:focus {
 
 .threadList {
   display: grid;
+  gap: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
 }
 
 .threadRow {
   display: grid;
-  grid-template-columns: 40px 1fr;
+  grid-template-columns: 42px 1fr;
   gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e3e9ee;
+  padding: 18px 20px;
   background: #fff;
   position: relative;
+  border-bottom: 1px solid #edf2f7;
+  transition: background-color 0.18s ease, transform 0.15s ease;
 }
 
 .threadRow:hover {
-  background: #fafcfd;
+  background: #fafcfe;
 }
 
 .threadRow.yours {
-  background: #eef3f7;
+  background: linear-gradient(90deg, rgba(255, 107, 44, 0.08), rgba(255, 255, 255, 0.88));
   border-left: 3px solid var(--orange);
   padding-left: 17px;
 }
 
 .threadAvatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #55efd8;
-  color: #073b34;
-  border: 1px solid #31d3bd;
+  background: linear-gradient(180deg, #99f0e3 0%, #73dbd0 100%);
+  color: #0c4b4c;
+  border: 1px solid rgba(38, 174, 157, 0.3);
   font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .threadRow.yours .threadAvatar {
-  background: #8adddf;
-  border-color: #ff9c5a;
+  background: linear-gradient(180deg, #ffd7ba 0%, #ffc291 100%);
+  border-color: rgba(255, 107, 44, 0.5);
 }
 
 .designForm .formField {
@@ -190,9 +195,10 @@ textarea:focus {
 }
 
 .editorShell {
-  border: 1px solid #d4dde6;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .editorShell textarea {
@@ -214,12 +220,13 @@ textarea:focus {
 .aiPanel.compact {
   margin-top: 14px;
   padding: 14px;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .pageHeading {
   display: flex;
   justify-content: space-between;
+  align-items: flex-end;
   gap: 20px;
 }
 
@@ -232,29 +239,39 @@ textarea:focus {
 .categoryFilter {
   display: grid;
   gap: 6px;
-  color: #526177;
+  color: var(--slate-700);
   font-size: 0.78rem;
 }
 
 .categoryFilter select {
   min-width: 155px;
-  border: 1px solid #d4dde6;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   background: #fff;
   padding: 11px 12px;
-  color: #27364a;
+  color: var(--navy-800);
 }
 
 h1 {
   margin: 6px 0;
+  line-height: 1.15;
+}
+
+h2,
+h3,
+h4 {
+  color: var(--navy-900);
+  line-height: 1.2;
 }
 
 .questionList {
   display: grid;
   gap: 0;
-  border: 1px solid #dbe3ea;
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
 }
 
 .textLink {
@@ -267,13 +284,13 @@ h1 {
   padding: 17px 16px;
   line-height: 1.65;
   font-size: 0.86rem;
-  color: #27364a;
+  color: var(--navy-800);
   outline: none;
 }
 
 .proseContent {
   line-height: 1.7;
-  color: #334155;
+  color: var(--navy-700);
   overflow-wrap: anywhere;
 }
 
@@ -291,7 +308,7 @@ p {
 
 strong {
   font-weight: 800;
-  color: #172033;
+  color: var(--navy-900);
 }
 
 em {
@@ -310,8 +327,9 @@ blockquote {
   margin: 1rem 0;
   padding: 0.7rem 1rem;
   border-left: 3px solid var(--orange);
-  background: #fff7f1;
-  color: #526177;
+  background: rgba(255, 107, 44, 0.05);
+  color: var(--slate-700);
+  border-radius: 0 10px 10px 0;
 }
 
 code {
@@ -325,9 +343,10 @@ code {
 pre {
   background: #172033;
   color: #edf5ff;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 14px;
   overflow: auto;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 pre code {
@@ -337,7 +356,7 @@ pre code {
 }
 
 a {
-  color: #e65f0e;
+  color: #db5a00;
   text-decoration: underline;
   text-underline-offset: 2px;
 }

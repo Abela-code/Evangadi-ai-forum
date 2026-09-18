@@ -1,11 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { BookOpen, Home, LogOut, MessageSquare, Plus } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import styles from "./Sidebar.module.css";
 import ui from "../../styles/pageStates.module.css";
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const initials =
     `${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`.toUpperCase();
@@ -25,7 +27,7 @@ export default function Sidebar() {
             <small>Learn together. Ask with context.</small>
           </span>
         </NavLink>
-        <div className={styles.sidebarSectionLabel}>Navigate</div>
+        <div className={styles.sidebarSectionLabel}>{t("navigate")}</div>
         <nav className={styles.sidebarNav}>
           <NavLink
             to="/dashboard"
@@ -34,7 +36,7 @@ export default function Sidebar() {
             }
           >
             <Home size={18} />
-            Home
+            {t("home")}
           </NavLink>
           <NavLink
             to="/my-questions"
@@ -43,7 +45,7 @@ export default function Sidebar() {
             }
           >
             <MessageSquare size={18} />
-            Your Topics
+            {t("yourTopics")}
           </NavLink>
           <NavLink
             to="/rag-documents"
@@ -52,14 +54,14 @@ export default function Sidebar() {
             }
           >
             <BookOpen size={18} />
-            Knowledge Base
+            {t("knowledgeBase")}
           </NavLink>
         </nav>
       </div>
       <div className={styles.sidebarBottom}>
         <NavLink to="/questions/ask" className={styles.sidebarNew}>
           <Plus size={17} />
-          New Question
+          {t("newQuestion")}
         </NavLink>
         <div className={styles.sidebarUser}>
           <span className={ui.avatar}>{initials}</span>
@@ -67,7 +69,7 @@ export default function Sidebar() {
             <strong>
               {user?.firstName || "User"} {user?.lastName || ""}
             </strong>
-            <small>Learner</small>
+            <small>{t("learner")}</small>
           </span>
         </div>
         <button
@@ -76,7 +78,7 @@ export default function Sidebar() {
           onClick={onLogout}
         >
           <LogOut size={16} />
-          Logout
+          {t("logout")}
         </button>
       </div>
     </aside>

@@ -2,6 +2,7 @@ import { LogOut, Search } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import btn from "../../styles/buttons.module.css";
 import styles from "./Navbar.module.css";
 import ui from "../../styles/pageStates.module.css";
@@ -31,6 +32,7 @@ export default function Navbar() {
   const { pathname } = useLocation(),
     navigate = useNavigate(),
     { user, logout } = useAuth(),
+    { language, setLanguage, languages, t } = useLanguage(),
     [search, setSearch] = useState("");
   const [title, subtitle] =
     pathname.startsWith("/questions/") && !TITLES[pathname]
@@ -48,10 +50,19 @@ export default function Navbar() {
     logout();
     navigate("/auth", { replace: true });
   }
+  const translatedTitle =
+    pathname === "/dashboard"
+      ? t("home")
+      : pathname === "/questions/ask"
+        ? t("newQuestion")
+        : pathname === "/rag-documents"
+          ? t("knowledgeBase")
+          : title;
+
   return (
     <header className={styles.navbar}>
       <div className={styles.navbarPageTitle}>
-        <strong>{title}</strong>
+        <strong>{translatedTitle}</strong>
         <small>{subtitle}</small>
       </div>
       <form className={styles.navbarSearch} onSubmit={submit}>
@@ -59,10 +70,23 @@ export default function Navbar() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search questions by keyword..."
+          placeholder={t("searchQuestions")}
         />
       </form>
       <div className={styles.navbarUser}>
+        <label className={styles.languageControl}>
+          <span>{t("language")}:</span>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+          >
+            {languages.map((item) => (
+              <option key={item.code} value={item.code}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <strong>
           {user?.firstName || "User"} {user?.lastName || ""}
         </strong>

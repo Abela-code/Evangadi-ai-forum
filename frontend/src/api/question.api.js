@@ -38,3 +38,10 @@ export async function checkAnswerFit(questionHash, answerText) {
   });
   return response.data;
 }
+
+export async function translateQuestion(questionHash, targetLanguage) {
+  const response = await api.post(`/questions/${questionHash}/translate`, {
+    targetLanguage,
+  });
+  return response.data;
+}

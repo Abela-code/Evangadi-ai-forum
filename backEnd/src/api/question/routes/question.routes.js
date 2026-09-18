@@ -8,6 +8,7 @@ import {
   getSingleQuestionController,
   generateQuestionDraftCoachController,
   assessAnswerAgainstQuestionController,
+  translateQuestionController,
 } from "../controller/question.controller.js";
 import {
   createQuestionValidation,
@@ -17,6 +18,7 @@ import {
   getSingleQuestionValidation,
   generateQuestionDraftCoachValidation,
   assessAnswerAgainstQuestionValidation,
+  translateQuestionValidation,
 } from "../validations/question.validation.js";
 import { authenticateUser } from "../../../middleware/authentication.js";
 
@@ -90,6 +92,13 @@ questionRouter.post(
   authenticateUser,
   assessAnswerAgainstQuestionValidation,
   assessAnswerAgainstQuestionController,
+);
+
+questionRouter.post(
+  "/:questionHash/translate",
+  authenticateUser,
+  translateQuestionValidation,
+  translateQuestionController,
 );
 
 /**

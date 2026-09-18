@@ -1,19 +1,21 @@
 /* Styles for PostQuestion. Scoped to this component. */
 
 .guidanceCard {
-  background: #fff;
-  border: 1px solid #dbe3ea;
-  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,250,247,1) 0%, rgba(255,242,233,1) 100%);
+  border: 1px solid rgba(255, 107, 44, 0.2);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 14px 28px rgba(255, 107, 44, 0.05);
 }
 
 .askIntro h1 {
-  font-size: 1.8rem;
+  font-size: clamp(1.9rem, 2.3vw, 2.5rem);
   margin: 8px 0;
+  letter-spacing: -0.04em;
 }
 
 .askIntro p {
-  color: #56657a;
-  line-height: 1.55;
+  color: var(--slate-700);
+  line-height: 1.6;
   margin: 0;
   max-width: 760px;
 }
@@ -27,35 +29,33 @@
 }
 
 .guidanceCard {
-  background: #edf3f8;
-  border: 1.5px solid var(--orange);
   padding: 26px 30px;
 }
 
 .guidanceCard h2 {
   margin: 0 0 8px;
   font-size: 1.15rem;
+  color: var(--navy-900);
 }
 
-.guidanceCard p {
-  font-size: 0.82rem;
-  color: #435268;
-  line-height: 1.55;
-}
-
+.guidanceCard p,
 .guidanceCard li {
   font-size: 0.82rem;
-  color: #435268;
-  line-height: 1.55;
+  color: var(--slate-700);
+  line-height: 1.6;
 }
 
 .guidanceCard h3 {
   font-size: 0.9rem;
   margin: 18px 0 6px;
+  color: var(--navy-900);
 }
 
 .questionFormCard {
   padding: 28px;
+  border-radius: var(--radius-xl);
+  background: rgba(255,255,255,0.96);
+  box-shadow: var(--shadow-card);
 }
 
 .aiTipList {
@@ -71,7 +71,7 @@
   align-items: flex-start;
   gap: 9px;
   font-size: 0.84rem;
-  color: #435268;
+  color: var(--slate-700);
   line-height: 1.55;
 }
 

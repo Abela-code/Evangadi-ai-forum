@@ -10,6 +10,7 @@ import {
   generateQuestionDraftCoachService,
   assessAnswerAgainstQuestionService,
 } from "../service/geminiTextCoach.service.js";
+import { translateQuestionText } from "../service/translation.service.js";
 
 /**
  * Handles creating a new question.
@@ -173,6 +174,27 @@ const assessAnswerAgainstQuestionController = async (req, res, next) => {
   }
 };
 
+const translateQuestionController = async (req, res, next) => {
+  try {
+    const { questionHash } = req.params;
+    const { targetLanguage } = req.body;
+    const { question } = await getSingleQuestionService({ questionHash });
+    const data = await translateQuestionText({
+      title: question.title,
+      content: question.content,
+      targetLanguage,
+    });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Question translated successfully.",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   createQuestionController,
   getQuestionsController,
@@ -181,4 +203,5 @@ export {
   getSimilarQuestionsController,
   generateQuestionDraftCoachController,
   assessAnswerAgainstQuestionController,
+  translateQuestionController,
 };
