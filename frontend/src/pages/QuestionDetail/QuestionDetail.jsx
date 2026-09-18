@@ -128,12 +128,23 @@ export default function QuestionDetail() {
   // pressed, which reads as "the button does nothing".
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [fitResult, setFitResult] = useState(null);
   const [shareStatus, setShareStatus] = useState("");
   const [translationLanguage, setTranslationLanguage] = useState("am");
   const [translation, setTranslation] = useState(null);
   const [translationLoading, setTranslationLoading] = useState(false);
   const [translationError, setTranslationError] = useState("");
+
+  useEffect(() => {
+    if (!successMessage) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setSuccessMessage("");
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [successMessage]);
 
   const loadQuestion = useCallback(async () => {
     const data = await getQuestion(questionHash);
@@ -274,6 +285,7 @@ export default function QuestionDetail() {
         content,
       });
 
+      setSuccessMessage("Question answered! Your answer was posted.");
       await refreshAnswers();
       setFitResult(null); // the draft it described is gone
     } catch (err) {
@@ -415,6 +427,16 @@ export default function QuestionDetail() {
 
   return (
     <div className="discussion-page">
+      {successMessage && (
+        <div className={styles.successToast} role="status">
+          <Check size={18} aria-hidden="true" />
+          <div>
+            <strong>Question answered!</strong>
+            <span>Your answer was posted.</span>
+          </div>
+        </div>
+      )}
+
       {error && <ErrorMessage message={error} />}
 
       <Link to="/dashboard" className={styles.backLink}>

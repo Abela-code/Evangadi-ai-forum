@@ -21,6 +21,61 @@
   color: var(--orange-deep);
 }
 
+.successToast {
+  position: fixed;
+  top: 78px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 260px;
+  padding: 14px 16px;
+  border: 1px solid rgba(13, 108, 121, 0.2);
+  border-radius: 12px;
+  background: #f0fdfa;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+  color: #0d6c79;
+  animation: successToastInOut 4s ease-in-out forwards;
+}
+
+.successToast svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.successToast div {
+  display: grid;
+  gap: 3px;
+}
+
+.successToast strong {
+  font-size: 0.82rem;
+}
+
+.successToast span {
+  font-size: 0.74rem;
+  color: var(--navy-700);
+}
+
+@keyframes successToastInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  12%,
+  82% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
 .discussionGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 290px;
