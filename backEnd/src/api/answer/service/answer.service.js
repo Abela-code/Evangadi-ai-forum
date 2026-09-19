@@ -4,6 +4,7 @@ import {
   NotFoundError,
   UnauthenticatedError,
 } from "../../../utility/errors/errors.js";
+import { createNewAnswerNotification } from "../../notification/service/notification.service.js";
 
 /**
  * Maps a raw database row to a structured answer object.
@@ -32,7 +33,7 @@ const mapAnswer = (row) => ({
  */
 const getQuestionOwner = async (questionId) => {
   const rows = await safeExecute(
-    "SELECT question_id, user_id FROM questions WHERE question_id = ? LIMIT 1",
+    "SELECT question_id, question_hash, user_id FROM questions WHERE question_id = ? LIMIT 1",
     [questionId],
   );
   if (rows.length === 0) {
@@ -60,6 +61,23 @@ const createAnswerService = async ({ questionId, userId, content }) => {
   const insertSql =
     "INSERT INTO answers (question_id, user_id, content) VALUES (?, ?, ?)";
   const result = await safeExecute(insertSql, [questionId, userId, content]);
+
+  try {
+    const answererRows = await safeExecute(
+      "SELECT first_name, last_name FROM users WHERE user_id = ? LIMIT 1",
+      [userId],
+    );
+    const answerer = answererRows[0];
+
+    await createNewAnswerNotification({
+      questionHash: question.question_hash,
+      questionOwnerId: question.user_id,
+      answererId: userId,
+      answererName: `${answerer.first_name} ${answerer.last_name}`,
+    });
+  } catch (error) {
+    console.error("Could not create answer notification:", error);
+  }
 
   return getSingleAnswerService(result.insertId);
 };

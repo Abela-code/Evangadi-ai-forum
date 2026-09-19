@@ -59,10 +59,141 @@
 }
 
 .navbarUser {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   white-space: nowrap;
+}
+
+.notificationMenu {
+  position: relative;
+}
+
+.notificationMenu > button {
+  position: relative;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--orange);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.notificationPanel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: min(360px, calc(100vw - 32px));
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+  animation: notificationPanelIn 160ms ease-out;
+}
+
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--navy-900);
+  font-size: 0.82rem;
+}
+
+.notificationHeader button {
+  border: 0;
+  background: transparent;
+  color: var(--orange-deep);
+  font-size: 0.66rem;
+  cursor: pointer;
+}
+
+.notificationList {
+  max-height: 370px;
+  overflow-y: auto;
+}
+
+.notificationItem {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 13px 16px;
+  border: 0;
+  border-bottom: 1px solid #eef2f6;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notificationItem:hover,
+.notificationItem.unread {
+  background: #fff8f3;
+}
+
+.notificationIcon {
+  color: var(--orange);
+  flex: 0 0 auto;
+}
+
+.notificationItem > span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.notificationItem strong {
+  color: var(--navy-900);
+  font-size: 0.76rem;
+}
+
+.notificationItem span span {
+  color: var(--navy-700);
+  font-size: 0.72rem;
+}
+
+.notificationItem small {
+  color: var(--slate-500);
+  font-size: 0.62rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notificationState,
+.notificationError {
+  padding: 18px 16px;
+  margin: 0;
+  color: var(--slate-500);
+  font-size: 0.74rem;
+}
+
+.notificationError {
+  color: #a52424;
+}
+
+@keyframes notificationPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .navbarUser strong {
@@ -113,6 +244,10 @@
 
   .languageControl select {
     max-width: 88px;
+  }
+
+  .notificationPanel {
+    right: -54px;
   }
 }
 

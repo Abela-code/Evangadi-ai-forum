@@ -49,6 +49,10 @@ CREATE TABLE `questions` (
     FULLTEXT KEY `ft_questions_search` (`title`, `content`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- category columen 
+ALTER TABLE questions
+  ADD COLUMN category VARCHAR(32) NOT NULL DEFAULT 'Other' AFTER content,
+  ADD INDEX idx_questions_category (category);
 -- -----------------------------------------------------------------------------
 -- 3. Question Vectors Table
 -- Stores embeddings for the AI Semantic Search feature (Gemini default model).
@@ -134,3 +138,23 @@ CREATE TABLE `document_chunk_vectors` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- notifications table for user notifications
+CREATE TABLE IF NOT EXISTS `notifications` (
+    `notification_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `type` VARCHAR(32) NOT NULL,
+    `title` VARCHAR(128) NOT NULL,
+    `message` VARCHAR(255) NOT NULL,
+    `question_hash` CHAR(16) NOT NULL,
+    `actor_user_id` INT NOT NULL,
+    `is_read` BOOLEAN NOT NULL DEFAULT FALSE,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
+    FOREIGN KEY (`question_hash`) REFERENCES `questions`(`question_hash`) ON DELETE CASCADE,
+    FOREIGN KEY (`actor_user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
+
+    INDEX `idx_notifications_user_read_created` (`user_id`, `is_read`, `created_at`),
+    INDEX `idx_notifications_question_hash` (`question_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
