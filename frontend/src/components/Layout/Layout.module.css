@@ -1,10 +1,15 @@
 /* Styles for Layout. Scoped to this component. */
 
 .appLayout {
+  position: relative;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   background: transparent;
+}
+
+.sidebarOverlay {
+  display: none;
 }
 
 .appMain {
@@ -33,7 +38,27 @@
     display: block;
   }
 
+  .sidebarOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    border: 0;
+    background: rgba(15, 23, 42, 0.24);
+    animation: overlayIn 180ms ease-out;
+  }
+
   .pageContent {
     padding: 18px 18px 28px;
+  }
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }

@@ -1,6 +1,6 @@
-import { Bell, LogOut, Search } from "lucide-react";
+import { Bell, LogOut, Menu, Search } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import {
@@ -33,7 +33,11 @@ const TITLES = {
     "Find questions by meaning, not only exact words.",
   ],
 };
-export default function Navbar() {
+export default function Navbar({
+  isMenuOpen,
+  onMenuToggle,
+  onNotificationsOpen,
+}) {
   const { pathname } = useLocation(),
     navigate = useNavigate(),
     { user, logout } = useAuth(),
@@ -47,6 +51,7 @@ export default function Navbar() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState("");
   const [now, setNow] = useState(() => Date.now());
+  const notificationMenuRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -78,6 +83,19 @@ export default function Navbar() {
       window.clearInterval(intervalId);
     };
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!notificationsOpen) return undefined;
+
+    function handleOutsideClick(event) {
+      if (!notificationMenuRef.current?.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [notificationsOpen]);
   const [title, subtitle] =
     pathname.startsWith("/questions/") && !TITLES[pathname]
       ? [
@@ -148,6 +166,18 @@ export default function Navbar() {
 
   return (
     <header className={styles.navbar}>
+      <button
+        type="button"
+        className={`${btn.iconButton} ${styles.menuButton}`}
+        aria-label="Toggle menu"
+        aria-expanded={isMenuOpen}
+        onClick={() => {
+          setNotificationsOpen(false);
+          onMenuToggle();
+        }}
+      >
+        <Menu size={20} />
+      </button>
       <div className={styles.navbarPageTitle}>
         <strong>{translatedTitle}</strong>
         <small>{subtitle}</small>
@@ -180,12 +210,18 @@ export default function Navbar() {
         <span className={`${ui.avatar} ${ui.small}`}>
           {`${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`.toUpperCase()}
         </span>
-        <div className={styles.notificationMenu}>
+        <div className={styles.notificationMenu} ref={notificationMenuRef}>
           <button
             type="button"
             className={btn.iconButton}
             aria-label="Notifications"
-            onClick={() => setNotificationsOpen((open) => !open)}
+            onClick={() => {
+              setNotificationsOpen((open) => {
+                const nextOpen = !open;
+                if (nextOpen) onNotificationsOpen();
+                return nextOpen;
+              });
+            }}
           >
             <Bell size={18} />
             {notificationState.unreadCount > 0 && (

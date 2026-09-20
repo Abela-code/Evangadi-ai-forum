@@ -12,6 +12,7 @@ import {
   unwrapArray,
 } from "../../utils/data";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import btn from "../../styles/buttons.module.css";
 import styles from "./Dashboard.module.css";
 import ui from "../../styles/pageStates.module.css";
@@ -20,6 +21,7 @@ const SEMANTIC_MIN_LENGTH = 5; // GET /api/questions/search rejects shorter quer
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,11 +41,11 @@ export default function Dashboard() {
       setQuestions(unwrapArray(data, ["questions", "results"]));
       setActiveSearch(null);
     } catch (err) {
-      setError(getErrorMessage(err, "Could not load questions."));
+      setError(getErrorMessage(err, t("couldNotLoadQuestions")));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   // The first load runs inline rather than calling loadAllQuestions(), so no
   // state is set synchronously while the effect body runs. `loading` already
@@ -59,7 +61,7 @@ export default function Dashboard() {
           setQuestions(unwrapArray(data, ["questions", "results"]));
       } catch (err) {
         if (!cancelled)
-          setError(getErrorMessage(err, "Could not load questions."));
+          setError(getErrorMessage(err, t("couldNotLoadQuestions")));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -68,7 +70,7 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   async function runSearch(event) {
     event.preventDefault();
@@ -83,7 +85,7 @@ export default function Dashboard() {
 
     if (searchMode === "semantic" && value.length < SEMANTIC_MIN_LENGTH) {
       setNote(
-        `Semantic search needs at least ${SEMANTIC_MIN_LENGTH} characters.`,
+        t("semanticSearchLength", { count: SEMANTIC_MIN_LENGTH }),
       );
       return;
     }
@@ -104,8 +106,8 @@ export default function Dashboard() {
         getErrorMessage(
           err,
           searchMode === "semantic"
-            ? "Semantic search failed."
-            : "Could not search questions.",
+            ? t("semanticSearchFailed")
+            : t("couldNotSearchQuestions"),
         ),
       );
     } finally {
@@ -158,45 +160,41 @@ export default function Dashboard() {
   return (
     <div className={styles.dashboardPage}>
       <section className={styles.welcomeCard}>
-        <span className={ui.eyebrow}>Forum home</span>
-        <h1>Good to see you, {user?.firstName || "Learner"}</h1>
-        <p>
-          Start a topic, revisit your own threads, or skim the live feed. Search
-          the feed below by keyword or by meaning.
-        </p>
+        <span className={ui.eyebrow}>{t("forumHome")}</span>
+        <h1>
+          {t("goodToSeeYou")}, {user?.firstName || t("learnerFallback")}
+        </h1>
+        <p>{t("dashboardIntro")}</p>
         <div className={styles.quickGrid}>
           <Link to="/questions/ask">
             <Plus />
             <div>
-              <strong>New question</strong>
-              <small>Share context, errors, and what you already tried</small>
+              <strong>{t("newQuestion")}</strong>
+              <small>{t("newQuestionDescription")}</small>
             </div>
           </Link>
           <Link to="/my-questions">
             <Rows3 />
             <div>
-              <strong>Your topics</strong>
-              <small>Filtered list of threads you authored</small>
+              <strong>{t("yourTopics")}</strong>
+              <small>{t("yourTopicsDescription")}</small>
             </div>
           </Link>
           <Link to="/rag-documents">
             <BookOpen />
             <div>
-              <strong>Knowledge base</strong>
-              <small>
-                Course library, uploads, and retrieval-backed context
-              </small>
+              <strong>{t("knowledgeBase")}</strong>
+              <small>{t("knowledgeBaseDescription")}</small>
             </div>
           </Link>
         </div>
         <div className={styles.welcomeDivider} />
         <p className={styles.tinyNote}>
-          Figures below describe the newest threads in this feed (up to 100 from
-          the API).
+          {t("feedFigures")}
         </p>
         <div className={`${styles.statsGrid} ${styles.compact}`}>
           <div>
-            <small>Questions</small>
+            <small>{t("questions")}</small>
             <strong>{stats.q}</strong>
           </div>
           <div>
@@ -204,11 +202,11 @@ export default function Dashboard() {
             <strong>{stats.r}</strong>
           </div>
           <div>
-            <small>Unanswered</small>
+            <small>{t("unanswered")}</small>
             <strong>{stats.u}</strong>
           </div>
           <div>
-            <small>Yours</small>
+            <small>{t("yours")}</small>
             <strong>
               {
                 questions.filter(
@@ -222,13 +220,13 @@ export default function Dashboard() {
       <section className={styles.feedCard}>
         <div className={styles.feedHead}>
           <div>
-            <h2>Discussion feed</h2>
-            <p>Your threads use a slim left accent in this list.</p>
+            <h2>{t("discussionFeed")}</h2>
+            <p>{t("feedAccentNote")}</p>
           </div>
           <span className={styles.orangePill}>
             {activeSearch
-              ? `${activeSearch.mode === "semantic" ? "Semantic" : "Keyword"} results`
-              : "Newest threads"}
+              ? `${activeSearch.mode === "semantic" ? t("semantic") : t("keyword")} ${t("results")}`
+              : t("newestThreads")}
           </span>
         </div>
 
@@ -240,8 +238,8 @@ export default function Dashboard() {
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={
                 searchMode === "semantic"
-                  ? "Describe the problem, e.g. why does my express middleware not run?"
-                  : "Search titles and content by keyword"
+                  ? t("semanticPlaceholder")
+                  : t("searchTitlesContent")
               }
               aria-label="Search questions"
             />
@@ -250,7 +248,7 @@ export default function Dashboard() {
           <div
             className={styles.feedModeToggle}
             role="group"
-            aria-label="Search mode"
+            aria-label={t("search")}
           >
             <button
               type="button"
@@ -258,7 +256,7 @@ export default function Dashboard() {
               onClick={() => switchMode("keyword")}
               aria-pressed={searchMode === "keyword"}
             >
-              Keyword
+              {t("keyword")}
             </button>
             <button
               type="button"
@@ -266,12 +264,12 @@ export default function Dashboard() {
               onClick={() => switchMode("semantic")}
               aria-pressed={searchMode === "semantic"}
             >
-              Semantic
+              {t("semantic")}
             </button>
           </div>
 
           <button className={btn.primaryButton} disabled={loading}>
-            {loading ? "Searching..." : "Search"}
+            {loading ? t("searching") : t("search")}
           </button>
 
           {activeSearch && (
@@ -280,27 +278,33 @@ export default function Dashboard() {
               className={btn.textButton}
               onClick={clearSearch}
             >
-              <X size={15} /> Clear
+              <X size={15} /> {t("clear")}
             </button>
           )}
 
           {note && <p className={styles.feedSearchNote}>{note}</p>}
           {activeSearch && !note && (
             <p className={styles.feedSearchNote}>
-              Showing {activeSearch.mode} matches for “{activeSearch.term}”.
+              {t("searchMatches", {
+                mode:
+                  activeSearch.mode === "semantic"
+                    ? t("semantic")
+                    : t("keyword"),
+                term: activeSearch.term,
+              })}
             </p>
           )}
         </form>
 
-        {loading && <LoadingSpinner />}
+        {loading && <LoadingSpinner label={t("loading")} />}
         {error && <ErrorMessage message={error} />}
         {!loading && !error && questions.length === 0 && (
           <EmptyState
-            title={activeSearch ? "No matches found" : "No questions yet"}
+            title={activeSearch ? t("noMatches") : t("noQuestionsYet")}
             message={
               activeSearch
-                ? "Try different wording, or switch between keyword and semantic search."
-                : "Be the first person to ask a question."
+                ? t("tryDifferentSearch")
+                : t("firstQuestion")
             }
           />
         )}

@@ -15,6 +15,10 @@
   z-index: 10;
 }
 
+.menuButton {
+  display: none;
+}
+
 .navbarPageTitle {
   display: grid;
   min-width: 0;
@@ -231,9 +235,17 @@
 @media (max-width: 700px) {
   .navbar {
     position: static;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     height: auto;
     padding: 14px 18px;
+  }
+
+  .menuButton {
+    display: grid;
+  }
+
+  .navbarUser {
+    gap: 6px;
   }
 }
 

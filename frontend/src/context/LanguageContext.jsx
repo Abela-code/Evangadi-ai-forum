@@ -32,7 +32,15 @@ export function LanguageProvider({ children }) {
       language,
       setLanguage,
       languages: SUPPORTED_LANGUAGES,
-      t: (key) => translations[language][key] ?? translations.en[key] ?? key,
+      t: (key, variables = {}) => {
+        const template =
+          translations[language][key] ?? translations.en[key] ?? key;
+        return Object.entries(variables).reduce(
+          (text, [name, replacement]) =>
+            text.replaceAll(`{{${name}}}`, String(replacement)),
+          template,
+        );
+      },
     }),
     [language],
   );

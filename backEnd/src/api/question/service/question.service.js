@@ -160,6 +160,7 @@ const getQuestionsService = async (filters) => {
   const normalizedSortOrder = "DESC";
 
   const { whereClause, params } = buildQuestionFilters(filters);
+  const currentUserId = filters.userId ?? null;
 
   const listSql = `
     SELECT
@@ -173,7 +174,13 @@ const getQuestionsService = async (filters) => {
       u.user_id AS userId,
       u.first_name AS firstName,
       u.last_name AS lastName,
-      COUNT(DISTINCT a.answer_id) AS answerCount
+      COUNT(DISTINCT a.answer_id) AS answerCount,
+      CASE
+        WHEN ? IS NOT NULL AND EXISTS (
+          SELECT 1 FROM bookmarks b WHERE b.question_id = q.question_id AND b.user_id = ?
+        ) THEN 1
+        ELSE 0
+      END AS isBookmarked
     FROM questions q
     JOIN users u ON u.user_id = q.user_id
     LEFT JOIN answers a ON a.question_id = q.question_id
@@ -183,7 +190,7 @@ const getQuestionsService = async (filters) => {
     LIMIT ${normalizedLimit}
   `;
 
-  const rows = await safeExecute(listSql, params);
+  const rows = await safeExecute(listSql, [currentUserId, currentUserId, ...params]);
 
   return {
     data: rows.map((question) => ({
@@ -195,6 +202,7 @@ const getQuestionsService = async (filters) => {
       answerCount: question.answerCount,
       createdAt: question.createdAt,
       updatedAt: question.updatedAt,
+      isBookmarked: Boolean(question.isBookmarked),
       author: {
         id: question.userId,
         firstName: question.firstName,
@@ -210,7 +218,7 @@ const getQuestionsService = async (filters) => {
   };
 };
 
-const getSingleQuestionService = async ({ questionHash }) => {
+const getSingleQuestionService = async ({ questionHash, currentUserId }) => {
   const normalizedAnswerLimit = 100; // Fixed max 100 records
 
   const questionSql = `
@@ -225,14 +233,24 @@ const getSingleQuestionService = async ({ questionHash }) => {
       u.user_id AS userId,
       u.first_name AS firstName,
       u.last_name AS lastName,
-      COUNT(DISTINCT a.answer_id) AS answerCount
+      COUNT(DISTINCT a.answer_id) AS answerCount,
+      CASE
+        WHEN ? IS NOT NULL AND EXISTS (
+          SELECT 1 FROM bookmarks b WHERE b.question_id = q.question_id AND b.user_id = ?
+        ) THEN 1
+        ELSE 0
+      END AS isBookmarked
     FROM questions q
     JOIN users u ON u.user_id = q.user_id
     LEFT JOIN answers a ON a.question_id = q.question_id
     WHERE q.question_hash = ?
     GROUP BY q.question_id, u.user_id
   `;
-  const questionRows = await safeExecute(questionSql, [questionHash]);
+  const questionRows = await safeExecute(questionSql, [
+    currentUserId,
+    currentUserId,
+    questionHash,
+  ]);
 
   if (questionRows.length === 0) {
     throw new NotFoundError("Question not found");
@@ -268,6 +286,7 @@ const getSingleQuestionService = async ({ questionHash }) => {
       answerCount: question.answerCount,
       createdAt: question.createdAt,
       updatedAt: question.updatedAt,
+      isBookmarked: Boolean(question.isBookmarked),
       author: {
         id: question.userId,
         firstName: question.firstName,

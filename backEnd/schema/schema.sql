@@ -53,6 +53,21 @@ CREATE TABLE `questions` (
 ALTER TABLE questions
   ADD COLUMN category VARCHAR(32) NOT NULL DEFAULT 'Other' AFTER content,
   ADD INDEX idx_questions_category (category);
+
+DROP TABLE IF EXISTS `bookmarks`;
+CREATE TABLE `bookmarks` (
+    `bookmark_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `question_id` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
+    FOREIGN KEY (`question_id`) REFERENCES `questions`(`question_id`) ON DELETE CASCADE,
+
+    UNIQUE KEY `uniq_bookmarks_user_question` (`user_id`, `question_id`),
+    INDEX `idx_bookmarks_user_created` (`user_id`, `created_at`),
+    INDEX `idx_bookmarks_question_id` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- -----------------------------------------------------------------------------
 -- 3. Question Vectors Table
 -- Stores embeddings for the AI Semantic Search feature (Gemini default model).

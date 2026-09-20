@@ -82,6 +82,7 @@ const getSingleQuestionController = async (req, res, next) => {
 
     const result = await getSingleQuestionService({
       questionHash,
+      currentUserId: req.user.id,
     });
 
     res.status(StatusCodes.OK).json({

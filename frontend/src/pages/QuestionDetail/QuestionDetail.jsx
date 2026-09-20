@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
+  Bookmark,
+  BookmarkCheck,
   Check,
   MessageSquare,
   Share2,
@@ -8,6 +10,10 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
+import {
+  bookmarkQuestion,
+  unbookmarkQuestion,
+} from "../../api/bookmark.api";
 import {
   checkAnswerFit,
   getAllQuestions,
@@ -135,6 +141,10 @@ export default function QuestionDetail() {
   const [translation, setTranslation] = useState(null);
   const [translationLoading, setTranslationLoading] = useState(false);
   const [translationError, setTranslationError] = useState("");
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(
+    Boolean(question?.isBookmarked),
+  );
 
   useEffect(() => {
     if (!successMessage) return undefined;
@@ -145,6 +155,10 @@ export default function QuestionDetail() {
 
     return () => window.clearTimeout(timeoutId);
   }, [successMessage]);
+
+  useEffect(() => {
+    setIsBookmarked(Boolean(question?.isBookmarked));
+  }, [question?.isBookmarked]);
 
   const loadQuestion = useCallback(async () => {
     const data = await getQuestion(questionHash);
@@ -398,6 +412,31 @@ export default function QuestionDetail() {
     }
   }
 
+  async function toggleBookmark() {
+    const bookmarkId = getQuestionId(question) || questionHash;
+
+    if (!bookmarkId || bookmarkLoading) return;
+
+    const previousState = isBookmarked;
+    const nextState = !isBookmarked;
+
+    setIsBookmarked(nextState);
+    setBookmarkLoading(true);
+
+    try {
+      if (nextState) {
+        await bookmarkQuestion(bookmarkId);
+      } else {
+        await unbookmarkQuestion(bookmarkId);
+      }
+    } catch (err) {
+      setIsBookmarked(previousState);
+      setActionError(getErrorMessage(err, t("couldNotLoadSavedQuestions")));
+    } finally {
+      setBookmarkLoading(false);
+    }
+  }
+
   async function translate() {
     setTranslationLoading(true);
     setTranslationError("");
@@ -458,7 +497,22 @@ export default function QuestionDetail() {
               </div>
             </div>
 
-            <h1>{question?.title}</h1>
+            <div className={styles.titleRow}>
+              <h1>{question?.title}</h1>
+              <button
+                type="button"
+                className={`${btn.secondaryButton} ${isBookmarked ? styles.bookmarkButtonActive : ""}`}
+                onClick={toggleBookmark}
+                disabled={bookmarkLoading}
+              >
+                {isBookmarked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                {bookmarkLoading
+                  ? t("saved")
+                  : isBookmarked
+                    ? t("saved")
+                    : t("saveQuestion")}
+              </button>
+            </div>
 
             <span className={styles.categoryBadge}>
               {question?.category || "Other"}

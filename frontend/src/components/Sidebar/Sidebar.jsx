@@ -1,11 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { BookOpen, Home, LogOut, MessageSquare, Plus } from "lucide-react";
+import { Bookmark, BookOpen, Home, LogOut, MessageSquare, Plus } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import styles from "./Sidebar.module.css";
 import ui from "../../styles/pageStates.module.css";
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onNavigate }) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -16,9 +16,13 @@ export default function Sidebar() {
     navigate("/auth", { replace: true });
   }
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
       <div>
-        <NavLink to="/dashboard" className={styles.sidebarBrand}>
+        <NavLink
+          to="/dashboard"
+          className={styles.sidebarBrand}
+          onClick={onNavigate}
+        >
           <span className={ui.brandMark}>
             <MessageSquare size={19} />
           </span>
@@ -34,6 +38,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
             }
+            onClick={onNavigate}
           >
             <Home size={18} />
             {t("home")}
@@ -43,6 +48,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
             }
+            onClick={onNavigate}
           >
             <MessageSquare size={18} />
             {t("yourTopics")}
@@ -52,14 +58,29 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
             }
+            onClick={onNavigate}
           >
             <BookOpen size={18} />
             {t("knowledgeBase")}
           </NavLink>
+          <NavLink
+            to="/bookmarks"
+            className={({ isActive }) =>
+              `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
+            }
+            onClick={onNavigate}
+          >
+            <Bookmark size={18} />
+            {t("savedQuestions")}
+          </NavLink>
         </nav>
       </div>
       <div className={styles.sidebarBottom}>
-        <NavLink to="/questions/ask" className={styles.sidebarNew}>
+        <NavLink
+          to="/questions/ask"
+          className={styles.sidebarNew}
+          onClick={onNavigate}
+        >
           <Plus size={17} />
           {t("newQuestion")}
         </NavLink>
