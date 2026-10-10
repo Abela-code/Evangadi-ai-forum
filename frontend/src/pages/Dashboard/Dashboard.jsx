@@ -1,27 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Plus, Rows3, Search, X } from "lucide-react";
 import { Link } from "react-router-dom";
+
 import { getAllQuestions, semanticSearch } from "../../api/question.api";
+
 import QuestionCard from "../../components/QuestionCard/QuestionCard";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
 import EmptyState from "../../components/EmptyState/EmptyState";
-import {
-  getErrorMessage,
-  getQuestionOwnerId,
-  unwrapArray,
-} from "../../utils/data";
+
+import { getErrorMessage } from "../../utils/data";
 import { useAuth } from "../../context/AuthContext";
-import { useLanguage } from "../../context/LanguageContext";
+
 import btn from "../../styles/buttons.module.css";
 import styles from "./Dashboard.module.css";
 import ui from "../../styles/pageStates.module.css";
 
-const SEMANTIC_MIN_LENGTH = 5; // GET /api/questions/search rejects shorter queries
+const SEMANTIC_MIN_LENGTH = 5;
+const SEARCH_DEBOUNCE_MS = 400;
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { t } = useLanguage();
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,50 +31,71 @@ export default function Dashboard() {
   const [activeSearch, setActiveSearch] = useState(null);
   const [note, setNote] = useState("");
 
+  // Every request takes a new id; a response is applied only if its id is
+  // still the latest, so a slow older search never overwrites a newer one.
+  const requestIdRef = useRef(0);
+  // The search currently shown ("" = normal feed). Lets the debounced
+  // effect skip work that already ran (initial load, Enter, Clear).
+  const lastSearchKeyRef = useRef("");
+
   const loadAllQuestions = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    lastSearchKeyRef.current = "";
+
     setLoading(true);
     setError("");
 
     try {
-      const data = await getAllQuestions();
-      setQuestions(unwrapArray(data, ["questions", "results"]));
+      const response = await getAllQuestions();
+
+      if (requestId !== requestIdRef.current) return;
+
+      setQuestions(response.data);
       setActiveSearch(null);
     } catch (err) {
-      setError(getErrorMessage(err, t("couldNotLoadQuestions")));
+      if (requestId === requestIdRef.current) {
+        setError(getErrorMessage(err, "Could not load questions."));
+      }
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, [t]);
+  }, []);
 
-  // The first load runs inline rather than calling loadAllQuestions(), so no
-  // state is set synchronously while the effect body runs. `loading` already
-  // starts true, and the cancelled flag stops a slow response from landing on
-  // an unmounted page.
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    async function loadQuestions() {
+      const requestId = ++requestIdRef.current;
+      // A live search may start before the initial feed arrives.
+      const isStale = () => cancelled || requestId !== requestIdRef.current;
+
       try {
-        const data = await getAllQuestions();
-        if (!cancelled)
-          setQuestions(unwrapArray(data, ["questions", "results"]));
+        const response = await getAllQuestions();
+
+        if (!isStale()) {
+          setQuestions(response.data);
+        }
       } catch (err) {
-        if (!cancelled)
-          setError(getErrorMessage(err, t("couldNotLoadQuestions")));
+        if (!isStale()) {
+          setError(getErrorMessage(err, "Could not load questions."));
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!isStale()) {
+          setLoading(false);
+        }
       }
-    })();
+    }
+
+    loadQuestions();
 
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, []);
 
-  async function runSearch(event) {
-    event.preventDefault();
+  async function executeSearch(rawValue, searchMode) {
+    const value = rawValue.trim();
 
-    const value = searchQuery.trim();
     setNote("");
 
     if (!value) {
@@ -84,35 +104,83 @@ export default function Dashboard() {
     }
 
     if (searchMode === "semantic" && value.length < SEMANTIC_MIN_LENGTH) {
+      // Drop any in-flight search so it cannot land under this note.
+      requestIdRef.current += 1;
+      lastSearchKeyRef.current = `${searchMode}:${value}`;
+      setLoading(false);
       setNote(
-        t("semanticSearchLength", { count: SEMANTIC_MIN_LENGTH }),
+        `Semantic search needs at least ${SEMANTIC_MIN_LENGTH} characters.`,
       );
+
       return;
     }
+
+    const requestId = ++requestIdRef.current;
+    lastSearchKeyRef.current = `${searchMode}:${value}`;
 
     setLoading(true);
     setError("");
 
     try {
-      const data =
-        searchMode === "semantic"
-          ? await semanticSearch({ query: value, k: 10 })
-          : await getAllQuestions({ search: value });
+      let response;
 
-      setQuestions(unwrapArray(data, ["questions", "results", "matches"]));
-      setActiveSearch({ term: value, mode: searchMode });
+      if (searchMode === "semantic") {
+        response = await semanticSearch({
+          query: value,
+          k: 10,
+        });
+      } else {
+        response = await getAllQuestions({
+          search: value,
+        });
+      }
+
+      if (requestId !== requestIdRef.current) return;
+
+      setQuestions(response.data);
+
+      setActiveSearch({
+        term: value,
+        mode: searchMode,
+      });
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
+
       setError(
         getErrorMessage(
           err,
           searchMode === "semantic"
-            ? t("semanticSearchFailed")
-            : t("couldNotSearchQuestions"),
+            ? "Semantic search failed."
+            : "Could not search questions.",
         ),
       );
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
+  }
+
+  // Live search: run once the user pauses typing (or switches mode).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const value = searchQuery.trim();
+      const key = value ? `${searchMode}:${value}` : "";
+
+      if (key === lastSearchKeyRef.current) return;
+
+      executeSearch(searchQuery, searchMode);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+    // executeSearch only reads refs, state setters and loadAllQuestions
+    // (stable), so re-running on its identity would only reset the timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, searchMode]);
+
+  // Enter / the Search button still run immediately.
+  async function runSearch(event) {
+    event.preventDefault();
+
+    await executeSearch(searchQuery, searchMode);
   }
 
   function clearSearch() {
@@ -126,120 +194,132 @@ export default function Dashboard() {
     setNote("");
   }
 
-  const stats = useMemo(
-    () => ({
-      q: questions.length,
+  const stats = useMemo(() => {
+    const totalReplies = questions.reduce(
+      (total, question) => total + Number(question.answerCount),
+      0,
+    );
 
-      r: questions.reduce(
-        (sum, question) =>
-          sum +
-          Number(
-            question.answer_count ??
-              question.answers_count ??
-              question.answerCount ??
-              0,
-          ),
-        0,
-      ),
+    const unanswered = questions.filter(
+      (question) => Number(question.answerCount) === 0,
+    ).length;
 
-      u: questions.filter(
-        (question) =>
-          Number(
-            question.answer_count ??
-              question.answers_count ??
-              question.answerCount ??
-              0,
-          ) === 0,
-      ).length,
-    }),
-    [questions],
-  );
+    const yours = questions.filter(
+      (question) => String(question.author.id) === String(user.id),
+    ).length;
 
-  const uid = user?.id ?? user?.user_id;
+    return {
+      questions: questions.length,
+      replies: totalReplies,
+      unanswered,
+      yours,
+    };
+  }, [questions, user.id]);
 
   return (
     <div className={styles.dashboardPage}>
       <section className={styles.welcomeCard}>
-        <span className={ui.eyebrow}>{t("forumHome")}</span>
-        <h1>
-          {t("goodToSeeYou")}, {user?.firstName || t("learnerFallback")}
-        </h1>
-        <p>{t("dashboardIntro")}</p>
+        <span className={ui.eyebrow}>Forum home</span>
+
+        <h1>Good to see you, {user.firstName}</h1>
+
+        <p>
+          Start a topic, revisit your own threads, or skim the live feed. Search
+          the feed below by keyword or by meaning.
+        </p>
+
         <div className={styles.quickGrid}>
           <Link to="/questions/ask">
             <Plus />
+
             <div>
-              <strong>{t("newQuestion")}</strong>
-              <small>{t("newQuestionDescription")}</small>
+              <strong>New question</strong>
+
+              <small>Share context, errors, and what you already tried</small>
             </div>
           </Link>
+
           <Link to="/my-questions">
             <Rows3 />
+
             <div>
-              <strong>{t("yourTopics")}</strong>
-              <small>{t("yourTopicsDescription")}</small>
+              <strong>Your topics</strong>
+
+              <small>Filtered list of threads you authored</small>
             </div>
           </Link>
+
           <Link to="/rag-documents">
             <BookOpen />
+
             <div>
-              <strong>{t("knowledgeBase")}</strong>
-              <small>{t("knowledgeBaseDescription")}</small>
+              <strong>Knowledge base</strong>
+
+              <small>
+                Course library, uploads, and retrieval-backed context
+              </small>
             </div>
           </Link>
         </div>
+
         <div className={styles.welcomeDivider} />
+
         <p className={styles.tinyNote}>
-          {t("feedFigures")}
+          Figures below describe the newest threads in this feed (up to 100 from
+          the API).
         </p>
+
         <div className={`${styles.statsGrid} ${styles.compact}`}>
           <div>
-            <small>{t("questions")}</small>
-            <strong>{stats.q}</strong>
+            <small>Questions</small>
+            <strong>{stats.questions}</strong>
           </div>
+
           <div>
             <small>Replies</small>
-            <strong>{stats.r}</strong>
+            <strong>{stats.replies}</strong>
           </div>
+
           <div>
-            <small>{t("unanswered")}</small>
-            <strong>{stats.u}</strong>
+            <small>Unanswered</small>
+            <strong>{stats.unanswered}</strong>
           </div>
+
           <div>
-            <small>{t("yours")}</small>
-            <strong>
-              {
-                questions.filter(
-                  (q) => String(getQuestionOwnerId(q)) === String(uid),
-                ).length
-              }
-            </strong>
+            <small>Yours</small>
+            <strong>{stats.yours}</strong>
           </div>
         </div>
       </section>
+
       <section className={styles.feedCard}>
         <div className={styles.feedHead}>
           <div>
-            <h2>{t("discussionFeed")}</h2>
-            <p>{t("feedAccentNote")}</p>
+            <h2>Discussion feed</h2>
+
+            <p>Your threads use a slim left accent in this list.</p>
           </div>
+
           <span className={styles.orangePill}>
             {activeSearch
-              ? `${activeSearch.mode === "semantic" ? t("semantic") : t("keyword")} ${t("results")}`
-              : t("newestThreads")}
+              ? `${
+                  activeSearch.mode === "semantic" ? "Semantic" : "Keyword"
+                } results`
+              : "Newest threads"}
           </span>
         </div>
 
         <form className={styles.feedSearch} onSubmit={runSearch}>
           <div className={styles.feedSearchInput}>
             <Search size={18} />
+
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={
                 searchMode === "semantic"
-                  ? t("semanticPlaceholder")
-                  : t("searchTitlesContent")
+                  ? "Describe the problem, e.g. why does my express middleware not run?"
+                  : "Search titles and content by keyword"
               }
               aria-label="Search questions"
             />
@@ -248,7 +328,7 @@ export default function Dashboard() {
           <div
             className={styles.feedModeToggle}
             role="group"
-            aria-label={t("search")}
+            aria-label="Search mode"
           >
             <button
               type="button"
@@ -256,20 +336,21 @@ export default function Dashboard() {
               onClick={() => switchMode("keyword")}
               aria-pressed={searchMode === "keyword"}
             >
-              {t("keyword")}
+              Keyword
             </button>
+
             <button
               type="button"
               className={searchMode === "semantic" ? styles.active : ""}
               onClick={() => switchMode("semantic")}
               aria-pressed={searchMode === "semantic"}
             >
-              {t("semantic")}
+              Semantic
             </button>
           </div>
 
           <button className={btn.primaryButton} disabled={loading}>
-            {loading ? t("searching") : t("search")}
+            {loading ? "Searching..." : "Search"}
           </button>
 
           {activeSearch && (
@@ -278,42 +359,41 @@ export default function Dashboard() {
               className={btn.textButton}
               onClick={clearSearch}
             >
-              <X size={15} /> {t("clear")}
+              <X size={15} />
+              Clear
             </button>
           )}
 
           {note && <p className={styles.feedSearchNote}>{note}</p>}
+
           {activeSearch && !note && (
             <p className={styles.feedSearchNote}>
-              {t("searchMatches", {
-                mode:
-                  activeSearch.mode === "semantic"
-                    ? t("semantic")
-                    : t("keyword"),
-                term: activeSearch.term,
-              })}
+              Showing {activeSearch.mode} matches for “{activeSearch.term}”.
             </p>
           )}
         </form>
 
-        {loading && <LoadingSpinner label={t("loading")} />}
+        {loading && <LoadingSpinner />}
+
         {error && <ErrorMessage message={error} />}
+
         {!loading && !error && questions.length === 0 && (
           <EmptyState
-            title={activeSearch ? t("noMatches") : t("noQuestionsYet")}
+            title={activeSearch ? "No matches found" : "No questions yet"}
             message={
               activeSearch
-                ? t("tryDifferentSearch")
-                : t("firstQuestion")
+                ? "Try different wording, or switch between keyword and semantic search."
+                : "Be the first person to ask a question."
             }
           />
         )}
+
         <div className={ui.threadList}>
-          {questions.map((q, i) => (
+          {questions.map((question) => (
             <QuestionCard
-              key={q.question_hash || q.questionHash || q.id || i}
-              question={q}
-              yours={String(getQuestionOwnerId(q)) === String(uid)}
+              key={question.questionHash}
+              question={question}
+              yours={String(question.author.id) === String(user.id)}
             />
           ))}
         </div>

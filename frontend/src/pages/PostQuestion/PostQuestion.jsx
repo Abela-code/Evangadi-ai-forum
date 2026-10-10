@@ -19,10 +19,7 @@ export default function PostQuestion() {
     try {
       const response = await createQuestion(payload);
       // POST /api/questions responds with { success, message, data: { questionHash, ... } }
-      const created = response?.data ?? response?.question ?? response;
-      const questionHash =
-        created?.questionHash ?? created?.question_hash ?? created?.hash;
-      nav(questionHash ? `/questions/${questionHash}` : "/dashboard");
+      nav(`/questions/${response.data.questionHash}`);
     } catch (e) {
       setError(getErrorMessage(e, "Could not post the question."));
     } finally {
@@ -35,7 +32,7 @@ export default function PostQuestion() {
     try {
       const response = await runDraftCoach(payload);
       // POST /api/questions/draft-coach responds with { success, message, data: { tips: [] } }
-      setCoachTips(response?.data?.tips ?? response?.tips ?? []);
+      setCoachTips(response.data.tips);
     } catch (e) {
       setError(getErrorMessage(e, "AI draft coach is unavailable."));
     } finally {
@@ -100,10 +97,10 @@ export default function PostQuestion() {
         />
       </section>
       {coachTips && (
-        <section className={`${ui.panel} ${ui.aiPanel}`}>
+        <section className={`${ui.panel} ${ui.aiPanel} ${styles.aiTipsPanel}`}>
           <h2>AI suggestions</h2>
           {coachTips.length === 0 ? (
-            <p>The coach did not return any tips for this draft.</p>
+            <p>No tips this time. Your draft already looks clear.</p>
           ) : (
             <ul className={styles.aiTipList}>
               {coachTips.map((tip, index) => (

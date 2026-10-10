@@ -2,16 +2,15 @@ import express from "express";
 
 import {
   createAnswerController,
-  deleteAnswerController,
   getAnswersController,
-  getSingleAnswerController,
   updateAnswerController,
+  deleteAnswerController,
 } from "../controller/answer.controller.js";
 
 import {
-  answerIdValidation,
   createAnswerValidation,
   getAnswersValidation,
+  answerIdValidation,
   updateAnswerValidation,
 } from "../validations/answer.validation.js";
 
@@ -39,27 +38,21 @@ answerRouter.post(
 answerRouter.get("/", getAnswersValidation, getAnswersController);
 
 /**
- * @route GET /api/answers/:answerId
- * @desc Get one answer
- * @access Public
- */
-answerRouter.get("/:answerId", answerIdValidation, getSingleAnswerController);
-
-/**
  * @route PATCH /api/answers/:answerId
- * @desc Update one answer
+ * @desc Update an answer (author only)
  * @access Protected
  */
 answerRouter.patch(
   "/:answerId",
   authenticateUser,
+  answerIdValidation,
   updateAnswerValidation,
   updateAnswerController,
 );
 
 /**
  * @route DELETE /api/answers/:answerId
- * @desc Delete one answer
+ * @desc Delete an answer (author only)
  * @access Protected
  */
 answerRouter.delete(

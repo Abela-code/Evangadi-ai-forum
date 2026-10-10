@@ -1,22 +1,16 @@
-import { Check, Pencil, Trash2, UserRound, X } from "lucide-react";
+/**
+ * ReplyItem renders an answer with its author and creation date, and provides
+ * owner-only controls for editing and deleting the answer.
+ */
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import MarkdownContent from "../MarkdownContent/MarkdownContent";
 import MarkdownEditor from "../MarkdownEditor/MarkdownEditor";
-import { getAuthorName, getQuestionOwnerId } from "../../utils/data";
+import { getAuthorName, getRelativeTime } from "../../utils/data";
+import UserAvatar from "../UserAvatar/UserAvatar";
 import btn from "../../styles/buttons.module.css";
 import styles from "./ReplyItem.module.css";
 import ui from "../../styles/pageStates.module.css";
-
-function formatDate(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return new Intl.DateTimeFormat("en-CA", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
 
 export default function ReplyItem({
   answer,
@@ -26,14 +20,9 @@ export default function ReplyItem({
   busy = false,
 }) {
   const [editing, setEditing] = useState(false);
-  const [content, setContent] = useState(answer.content || "");
+  const [content, setContent] = useState(answer.content);
 
-  const answerUserId = getQuestionOwnerId(answer);
-
-  const isOwner =
-    currentUserId != null &&
-    answerUserId != null &&
-    String(currentUserId) === String(answerUserId);
+  const isOwner = String(currentUserId) === String(answer.author.id);
 
   const author = getAuthorName(answer);
 
@@ -41,9 +30,7 @@ export default function ReplyItem({
     const value = content.trim();
     if (value.length < 20) return;
 
-    await onUpdate?.(answer.answer_id || answer.answerId || answer.id, {
-      content: value,
-    });
+    await onUpdate?.(answer.id, { content: value });
 
     setEditing(false);
   }
@@ -52,12 +39,10 @@ export default function ReplyItem({
     <article className={styles.replyItem}>
       <div className={styles.replyHeader}>
         <div className={styles.replyAuthor}>
-          <span className="reply-avatar">
-            <UserRound size={17} />
-          </span>
+          <UserAvatar person={answer.author} size="thread" />
           <div>
             <strong>{author}</strong>
-            <small>{formatDate(answer.created_at || answer.createdAt)}</small>
+            <small>Answered {getRelativeTime(answer.createdAt)}</small>
           </div>
         </div>
 
@@ -75,9 +60,7 @@ export default function ReplyItem({
             <button
               type="button"
               className={`${btn.iconButton} danger`}
-              onClick={() =>
-                onDelete?.(answer.answer_id || answer.answerId || answer.id)
-              }
+              onClick={() => onDelete?.(answer.id)}
               disabled={busy}
               aria-label="Delete answer"
             >
@@ -95,7 +78,7 @@ export default function ReplyItem({
               type="button"
               className={btn.secondaryButton}
               onClick={() => {
-                setContent(answer.content || "");
+                setContent(answer.content);
                 setEditing(false);
               }}
               disabled={busy}
@@ -114,7 +97,7 @@ export default function ReplyItem({
         </div>
       ) : (
         <div className={`${styles.replyContent} ${ui.proseContent}`}>
-          <MarkdownContent>{answer.content || ""}</MarkdownContent>
+          <MarkdownContent>{answer.content}</MarkdownContent>
         </div>
       )}
     </article>

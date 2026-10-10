@@ -1,10 +1,6 @@
 import crypto from "crypto";
 import { safeExecute } from "../../../../schema/db.config.js";
 import {
-  BadRequestError,
-  NotFoundError,
-} from "../../../utility/errors/errors.js";
-import {
   findSimilarQuestionsByQuestionId,
   findSimilarQuestionsByText,
   generateQuestionEmbedding,
@@ -13,12 +9,189 @@ import {
   storeQuestionVector,
 } from "./vector.service.js";
 import {
-  classifyQuestionCategoryService,
-  QUESTION_CATEGORIES,
-} from "./geminiTextCoach.service.js";
+  getQuestionTag,
+  warmQuestionTagEmbeddings,
+} from "./question-tagging.service.js";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "../../../utility/errors/errors.js";
 
 const generateQuestionHash = () => crypto.randomBytes(8).toString("hex");
+// ---- T-10a ---added---
+const buildQuestionFilters = (filters) => {
+  const conditions = [];
+  const params = [];
 
+  if (filters.search) {
+    conditions.push("(q.title LIKE ? OR q.content LIKE ?)");
+    const searchTerm = `%${filters.search}%`;
+    params.push(searchTerm, searchTerm);
+  }
+
+  if (filters.mine && filters.userId) {
+    conditions.push("q.user_id = ?");
+    params.push(filters.userId);
+  }
+
+  if (filters.tag) {
+    conditions.push("q.tag = ?");
+    params.push(filters.tag);
+  }
+
+  if (conditions.length === 0) {
+    return { whereClause: "", params };
+  }
+
+  return {
+    whereClause: `WHERE ${conditions.join(" AND ")}`,
+    params,
+  };
+};
+const getQuestionsService = async (filters) => {
+  const normalizedLimit = 100; // Fixed max 100 records
+  const sortColumn = "q.created_at";
+  const normalizedSortOrder = "DESC";
+
+  const { whereClause, params } = buildQuestionFilters(filters);
+
+  const listSql = `
+    SELECT
+      q.question_id AS id,
+      q.question_hash AS questionHash,
+      q.title,
+      q.content,
+      q.tag,
+      q.created_at AS createdAt,
+      q.updated_at AS updatedAt,
+      u.user_id AS userId,
+      u.first_name AS firstName,
+      u.last_name AS lastName,
+      u.avatar AS avatar,
+      COUNT(DISTINCT a.answer_id) AS answerCount
+    FROM questions q
+    JOIN users u ON u.user_id = q.user_id
+    LEFT JOIN answers a ON a.question_id = q.question_id
+    ${whereClause}
+    GROUP BY q.question_id, u.user_id
+    ORDER BY ${sortColumn} ${normalizedSortOrder}
+    LIMIT ${normalizedLimit}
+  `;
+
+  const rows = await safeExecute(listSql, params);
+
+  return {
+    data: rows.map((question) => ({
+      id: question.id,
+      questionHash: question.questionHash,
+      title: question.title,
+      content: question.content,
+      tag: question.tag,
+      answerCount: question.answerCount,
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+      author: {
+        id: question.userId,
+        firstName: question.firstName,
+        lastName: question.lastName,
+        avatar: question.avatar ?? null,
+      },
+    })),
+    meta: {
+      limit: normalizedLimit,
+      total: rows.length,
+      sortBy: "newest",
+      sortOrder: normalizedSortOrder,
+    },
+  };
+};
+
+// ---- T-10b ----
+const getSingleQuestionService = async ({ questionHash }) => {
+  const normalizedAnswerLimit = 100; // Fixed max 100 records
+
+  const questionSql = `
+    SELECT
+      q.question_id AS id,
+      q.question_hash AS questionHash,
+      q.title,
+      q.content,
+      q.tag,
+      q.created_at AS createdAt,
+      q.updated_at AS updatedAt,
+      u.user_id AS userId,
+      u.first_name AS firstName,
+      u.last_name AS lastName,
+      u.avatar AS avatar,
+      COUNT(DISTINCT a.answer_id) AS answerCount
+    FROM questions q
+    JOIN users u ON u.user_id = q.user_id
+    LEFT JOIN answers a ON a.question_id = q.question_id
+    WHERE q.question_hash = ?
+    GROUP BY q.question_id, u.user_id
+  `;
+  const questionRows = await safeExecute(questionSql, [questionHash]);
+
+  if (questionRows.length === 0) {
+    throw new NotFoundError("Question not found");
+  }
+
+  const question = questionRows[0];
+  const questionId = question.id;
+
+  const answersSql = `
+    SELECT
+      a.answer_id AS id,
+      a.content,
+      a.created_at AS createdAt,
+      a.updated_at AS updatedAt,
+      au.user_id AS userId,
+      au.first_name AS firstName,
+      au.last_name AS lastName,
+      au.avatar AS avatar
+    FROM answers a
+    JOIN users au ON au.user_id = a.user_id
+    WHERE a.question_id = ?
+    ORDER BY a.created_at DESC
+    LIMIT ${normalizedAnswerLimit}
+  `;
+  const answers = await safeExecute(answersSql, [questionId]);
+
+  return {
+    question: {
+      id: question.id,
+      questionHash: question.questionHash,
+      title: question.title,
+      content: question.content,
+      tag: question.tag,
+      answerCount: question.answerCount,
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+      author: {
+        id: question.userId,
+        firstName: question.firstName,
+        lastName: question.lastName,
+        avatar: question.avatar ?? null,
+      },
+    },
+    answers: answers.map((answer) => ({
+      id: answer.id,
+      content: answer.content,
+      createdAt: answer.createdAt,
+      updatedAt: answer.updatedAt,
+      author: {
+        id: answer.userId,
+        firstName: answer.firstName,
+        lastName: answer.lastName,
+        avatar: answer.avatar ?? null,
+      },
+    })),
+    answersMeta: {
+      limit: normalizedAnswerLimit,
+      total: answers.length,
+    },
+  };
+};
 /**
  * Creates a new question and stores its vector embedding for semantic search.
  * @param {Object} payload - The question data
@@ -32,16 +205,12 @@ const createQuestionWithVectorService = async (payload) => {
   const { userId, title, content } = payload;
 
   // Prepare the SQL statement for inserting a new question
-  const category = await classifyQuestionCategoryService({ title, content });
-  const validatedCategory = QUESTION_CATEGORIES.includes(category)
-    ? category
-    : "Other";
-
   const insertQuestionSql =
-    "INSERT INTO questions (question_hash, user_id, title, content, category) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO questions (question_hash, user_id, title, content, tag) VALUES (?, ?, ?, ?, NULL)";
 
   // Generate a unique hash for the question
   const questionHash = generateQuestionHash();
+
   let questionResult;
 
   try {
@@ -51,14 +220,13 @@ const createQuestionWithVectorService = async (payload) => {
       userId,
       title,
       content,
-      validatedCategory,
     ]);
   } catch (error) {
     // Handle specific foreign key constraint error for non-existent user
     if (error?.code === "ER_NO_REFERENCED_ROW_2") {
       throw new BadRequestError("User does not exist.");
     }
-    // Re-throw any other unexpected errors
+
     throw error;
   }
 
@@ -72,14 +240,16 @@ const createQuestionWithVectorService = async (payload) => {
     title,
     content,
     userId,
-    category: validatedCategory,
+    tag: null,
   };
 
-  // Normalize the question text (e.g., title) to prepare it for vector embedding
+  // Normalize the question text (title and content) to prepare it for vector embedding
   const sourceText = normalizeQuestionText({
     title: payload.title,
+    content: payload.content,
   });
 
+  let questionEmbedding;
   try {
     // Generate the vector embedding for the normalized question text
     const embeddingResult = await generateQuestionEmbedding(sourceText, {
@@ -94,6 +264,9 @@ const createQuestionWithVectorService = async (payload) => {
     ) {
       throw new Error("Gemini API returned an empty or invalid embedding");
     }
+
+    questionEmbedding = embeddingResult.embedding;
+
     // Store the generated vector embedding in the database with a 'ready' status
     await storeQuestionVector({
       questionId: creationResult.id,
@@ -118,196 +291,35 @@ const createQuestionWithVectorService = async (payload) => {
     }).catch((e) => console.error("Failed to save failed status", e));
   }
 
+  if (questionEmbedding) {
+    try {
+      const tag = getQuestionTag(questionEmbedding);
+      await safeExecute("UPDATE questions SET tag = ? WHERE question_id = ?", [
+        tag,
+        questionId,
+      ]);
+      creationResult.tag = tag;
+    } catch (error) {
+      console.error("Failed to tag question", questionId, error);
+      warmQuestionTagEmbeddings();
+      try {
+        await safeExecute(
+          "UPDATE questions SET tag = NULL WHERE question_id = ?",
+          [questionId],
+        );
+      } catch (updateError) {
+        console.error(
+          "Failed to clear question tag after tagging error",
+          questionId,
+          updateError,
+        );
+      }
+    }
+  }
+
   // Return the created question object
   return {
     question: creationResult,
-  };
-};
-
-const buildQuestionFilters = (filters) => {
-  const conditions = [];
-  const params = [];
-
-  if (filters.search) {
-    conditions.push("(q.title LIKE ? OR q.content LIKE ?)");
-    const searchTerm = `%${filters.search}%`;
-    params.push(searchTerm, searchTerm);
-  }
-
-  if (filters.mine && filters.userId) {
-    conditions.push("q.user_id = ?");
-    params.push(filters.userId);
-  }
-
-  if (filters.category && QUESTION_CATEGORIES.includes(filters.category)) {
-    conditions.push("q.category = ?");
-    params.push(filters.category);
-  }
-
-  if (conditions.length === 0) {
-    return { whereClause: "", params };
-  }
-
-  return {
-    whereClause: `WHERE ${conditions.join(" AND ")}`,
-    params,
-  };
-};
-
-const getQuestionsService = async (filters) => {
-  const normalizedLimit = 100; // Fixed max 100 records
-  const sortColumn = "q.created_at";
-  const normalizedSortOrder = "DESC";
-
-  const { whereClause, params } = buildQuestionFilters(filters);
-  const currentUserId = filters.userId ?? null;
-
-  const listSql = `
-    SELECT
-      q.question_id AS id,
-      q.question_hash AS questionHash,
-      q.title,
-      q.content,
-      q.category,
-      q.created_at AS createdAt,
-      q.updated_at AS updatedAt,
-      u.user_id AS userId,
-      u.first_name AS firstName,
-      u.last_name AS lastName,
-      COUNT(DISTINCT a.answer_id) AS answerCount,
-      CASE
-        WHEN ? IS NOT NULL AND EXISTS (
-          SELECT 1 FROM bookmarks b WHERE b.question_id = q.question_id AND b.user_id = ?
-        ) THEN 1
-        ELSE 0
-      END AS isBookmarked
-    FROM questions q
-    JOIN users u ON u.user_id = q.user_id
-    LEFT JOIN answers a ON a.question_id = q.question_id
-    ${whereClause}
-    GROUP BY q.question_id, u.user_id
-    ORDER BY ${sortColumn} ${normalizedSortOrder}
-    LIMIT ${normalizedLimit}
-  `;
-
-  const rows = await safeExecute(listSql, [currentUserId, currentUserId, ...params]);
-
-  return {
-    data: rows.map((question) => ({
-      id: question.id,
-      questionHash: question.questionHash,
-      title: question.title,
-      content: question.content,
-      category: question.category,
-      answerCount: question.answerCount,
-      createdAt: question.createdAt,
-      updatedAt: question.updatedAt,
-      isBookmarked: Boolean(question.isBookmarked),
-      author: {
-        id: question.userId,
-        firstName: question.firstName,
-        lastName: question.lastName,
-      },
-    })),
-    meta: {
-      limit: normalizedLimit,
-      total: rows.length,
-      sortBy: "newest",
-      sortOrder: normalizedSortOrder,
-    },
-  };
-};
-
-const getSingleQuestionService = async ({ questionHash, currentUserId }) => {
-  const normalizedAnswerLimit = 100; // Fixed max 100 records
-
-  const questionSql = `
-    SELECT
-      q.question_id AS id,
-      q.question_hash AS questionHash,
-      q.title,
-      q.content,
-      q.category,
-      q.created_at AS createdAt,
-      q.updated_at AS updatedAt,
-      u.user_id AS userId,
-      u.first_name AS firstName,
-      u.last_name AS lastName,
-      COUNT(DISTINCT a.answer_id) AS answerCount,
-      CASE
-        WHEN ? IS NOT NULL AND EXISTS (
-          SELECT 1 FROM bookmarks b WHERE b.question_id = q.question_id AND b.user_id = ?
-        ) THEN 1
-        ELSE 0
-      END AS isBookmarked
-    FROM questions q
-    JOIN users u ON u.user_id = q.user_id
-    LEFT JOIN answers a ON a.question_id = q.question_id
-    WHERE q.question_hash = ?
-    GROUP BY q.question_id, u.user_id
-  `;
-  const questionRows = await safeExecute(questionSql, [
-    currentUserId,
-    currentUserId,
-    questionHash,
-  ]);
-
-  if (questionRows.length === 0) {
-    throw new NotFoundError("Question not found");
-  }
-
-  const question = questionRows[0];
-  const questionId = question.id;
-
-  const answersSql = `
-    SELECT
-      a.answer_id AS id,
-      a.content,
-      a.created_at AS createdAt,
-      a.updated_at AS updatedAt,
-      au.user_id AS userId,
-      au.first_name AS firstName,
-      au.last_name AS lastName
-    FROM answers a
-    JOIN users au ON au.user_id = a.user_id
-    WHERE a.question_id = ?
-    ORDER BY a.created_at DESC
-    LIMIT ${normalizedAnswerLimit}
-  `;
-  const answers = await safeExecute(answersSql, [questionId]);
-
-  return {
-    question: {
-      id: question.id,
-      questionHash: question.questionHash,
-      title: question.title,
-      content: question.content,
-      category: question.category,
-      answerCount: question.answerCount,
-      createdAt: question.createdAt,
-      updatedAt: question.updatedAt,
-      isBookmarked: Boolean(question.isBookmarked),
-      author: {
-        id: question.userId,
-        firstName: question.firstName,
-        lastName: question.lastName,
-      },
-    },
-    answers: answers.map((answer) => ({
-      id: answer.id,
-      content: answer.content,
-      createdAt: answer.createdAt,
-      updatedAt: answer.updatedAt,
-      author: {
-        id: answer.userId,
-        firstName: answer.firstName,
-        lastName: answer.lastName,
-      },
-    })),
-    answersMeta: {
-      limit: normalizedAnswerLimit,
-      total: answers.length,
-    },
   };
 };
 
@@ -355,7 +367,7 @@ const getSimilarQuestionsService = async ({
   const questionId = questionRows[0].id;
   const vectorConfig = getVectorConfig();
   const searchThreshold =
-    threshold !== undefined ? threshold : vectorConfig.recommendThreshold;
+    threshold !== undefined ? threshold : vectorConfig.relatedThreshold;
   const similarQuestions = await findSimilarQuestionsByQuestionId({
     questionId,
     threshold: searchThreshold,
@@ -372,10 +384,108 @@ const getSimilarQuestionsService = async ({
   };
 };
 
+// A question that does not exist and a question that belongs to someone else
+// both report "not found".
+const updateQuestionService = async ({
+  questionHash,
+  userId,
+  title,
+  content,
+}) => {
+  const rows = await safeExecute(
+    "SELECT question_id AS id, user_id, title, content, tag FROM questions WHERE question_hash = ?",
+    [questionHash],
+  );
+  if (rows.length === 0 || rows[0].user_id !== userId) {
+    throw new NotFoundError("Question not found");
+  }
+  const question = rows[0];
+
+  const contentChanged =
+    title !== question.title || content !== question.content;
+  let updatedTag = contentChanged ? null : question.tag;
+  await safeExecute(
+    "UPDATE questions SET title = ?, content = ?, tag = ? WHERE question_id = ?",
+    [title, content, contentChanged ? null : question.tag, question.id],
+  );
+
+  // The embedding is built from the title and the content, so refresh it only
+  // when one of them changed. If Gemini fails, the edit is kept and the vector
+  // is marked failed, the same as on create.
+  if (contentChanged) {
+    const sourceText = normalizeQuestionText({ title, content });
+    let embedding;
+    try {
+      const result = await generateQuestionEmbedding(sourceText, {
+        questionId: question.id,
+      });
+      embedding = result.embedding;
+      await storeQuestionVector({
+        questionId: question.id,
+        sourceText,
+        embedding,
+        status: "ready",
+      });
+    } catch (error) {
+      console.error("Failed to refresh question vector", question.id, error);
+      await storeQuestionVector({
+        questionId: question.id,
+        sourceText,
+        embedding: [],
+        status: "failed",
+      }).catch((e) => console.error("Failed to save failed status", e));
+    }
+
+    if (embedding) {
+      try {
+        const tag = getQuestionTag(embedding);
+        await safeExecute(
+          "UPDATE questions SET tag = ? WHERE question_id = ?",
+          [tag, question.id],
+        );
+        updatedTag = tag;
+      } catch (error) {
+        console.error("Failed to retag question", question.id, error);
+        warmQuestionTagEmbeddings();
+        await safeExecute(
+          "UPDATE questions SET tag = NULL WHERE question_id = ?",
+          [question.id],
+        ).catch((updateError) =>
+          console.error(
+            "Failed to clear tag after retagging error",
+            question.id,
+            updateError,
+          ),
+        );
+      }
+    }
+  }
+
+  return {
+    questionHash,
+    title,
+    content,
+    tag: updatedTag,
+  };
+};
+
+// Its answers and its stored vector are removed by ON DELETE CASCADE.
+const deleteQuestionService = async ({ questionHash, userId }) => {
+  const result = await safeExecute(
+    "DELETE FROM questions WHERE question_hash = ? AND user_id = ?",
+    [questionHash, userId],
+  );
+  if (result.affectedRows === 0) {
+    throw new NotFoundError("Question not found");
+  }
+};
+
 export {
-  createQuestionWithVectorService,
-  getQuestionsService,
   getSingleQuestionService,
-  searchQuestionsSemanticService,
+  createQuestionWithVectorService,
   getSimilarQuestionsService,
+  searchQuestionsSemanticService,
+  getQuestionsService,
+  updateQuestionService,
+  deleteQuestionService,
 };

@@ -21,9 +21,9 @@ const normalizeEmail = (email) => email.trim().toLowerCase();
  * @param {string} email - The email to check.
  * @returns {Promise<boolean>} True if the user exists, false otherwise.
  */
-const checkUserExists = async (email) => {
+export const checkUserExists = async (email) => {
   const normalizedEmail = normalizeEmail(email);
-  const sql = "SELECT user_id FROM users WHERE email = ? LIMIT 1";
+  const sql = "SELECT user_id FROM users WHERE email = ? ";
   const rows = await safeExecute(sql, [normalizedEmail]);
   return rows.length > 0;
 };
@@ -38,7 +38,12 @@ const checkUserExists = async (email) => {
  * @param {string} userData.password - The plain text password.
  * @returns {Promise<Object>} The created user object (without password).
  */
-const registerService = async ({ firstName, lastName, email, password }) => {
+export const registerService = async ({
+  firstName,
+  lastName,
+  email,
+  password,
+}) => {
   const normalizedEmail = normalizeEmail(email);
   const userExists = await checkUserExists(normalizedEmail);
   if (userExists) {
@@ -70,6 +75,8 @@ const registerService = async ({ firstName, lastName, email, password }) => {
     firstName,
     lastName,
     email: normalizedEmail,
+    bio: "",
+    avatar: null,
   };
 };
 
@@ -82,10 +89,10 @@ const registerService = async ({ firstName, lastName, email, password }) => {
  * @returns {Promise<Object>} An object containing the user and token.
  * @throws {UnauthenticatedError} If authentication fails.
  */
-const loginService = async ({ email, password }) => {
+export const loginService = async ({ email, password }) => {
   const normalizedEmail = normalizeEmail(email);
   const sql =
-    "SELECT user_id, first_name, last_name, email, password_hash FROM users WHERE email = ? LIMIT 1";
+    "SELECT user_id, first_name, last_name, email, bio, avatar, password_hash FROM users WHERE email = ? LIMIT 1";
   const rows = await safeExecute(sql, [normalizedEmail]);
 
   if (rows.length === 0) {
@@ -113,9 +120,9 @@ const loginService = async ({ email, password }) => {
       firstName: user.first_name,
       lastName: user.last_name,
       email: user.email,
+      bio: user.bio ?? "",
+      avatar: user.avatar ?? null,
     },
     token,
   };
 };
-
-export { registerService, loginService };

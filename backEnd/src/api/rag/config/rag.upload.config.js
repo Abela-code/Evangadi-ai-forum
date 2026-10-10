@@ -1,15 +1,16 @@
+// RAG upload settings (multer): PDF only, size limit, where files are saved.
+// Settings come from .env: RAG_UPLOAD_DIR and RAG_MAX_UPLOAD_MB.
+// The uploads/ folder is already in .gitignore. Never commit uploaded files.
+
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import multer from "multer";
 import { BadRequestError } from "../../../utility/errors/errors.js";
 
+// ---- T-22 (Yabets): ragUpload, createDocumentMulterErrorHandler ----
 export const RAG_UPLOAD_DIR = process.env.RAG_UPLOAD_DIR || "uploads/rag";
 export const RAG_MAX_UPLOAD_MB = Number(process.env.RAG_MAX_UPLOAD_MB) || 10;
-
-/** Absolute path on disk for a storage_path stored in the documents table. */
-export const resolveStoragePath = (storagePath) =>
-  path.resolve(RAG_UPLOAD_DIR, storagePath);
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
@@ -18,7 +19,7 @@ const storage = multer.diskStorage({
     fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
   },
   filename(req, file, cb) {
-    // Never trust the client's filename on disk — the original is kept in the
+    // Never trust the client's filename on disk: the original is kept in the
     // title column instead.
     cb(null, `${Date.now()}-${crypto.randomBytes(6).toString("hex")}.pdf`);
   },
@@ -53,11 +54,14 @@ export const createDocumentMulterErrorHandler = (error, req, res, next) => {
         ),
       );
     }
+
     if (error.code === "LIMIT_UNEXPECTED_FILE") {
       return next(new BadRequestError("Send the PDF in a field named 'file'."));
     }
+
     return next(new BadRequestError(error.message));
   }
 
   return next(error);
-}; 
+};
+// ---- end T-22 ----

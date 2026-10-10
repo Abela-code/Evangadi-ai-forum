@@ -1,41 +1,81 @@
-/* Global: design tokens, reset and base element styles.
+/* Global design tokens, reset and base element styles.
    Anything component-specific lives in a .module.css beside its component. */
 
 :root {
   font-family:
-    Inter,
-    ui-sans-serif,
+    "Inter",
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  color: #172033;
-  background: #f5f7fb;
+  color-scheme: light;
+  color: var(--text);
+  background: var(--page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --orange: #ff6b2c;
-  --orange-dark: #e75900;
-  --orange-soft: #fff3eb;
-  --orange-deep: #c94d00;
-  --navy-900: #0f172a;
-  --navy-800: #1f2937;
-  --navy-700: #334155;
-  --slate-700: #475569;
-  --slate-500: #64748b;
-  --slate-300: #cbd5e1;
-  --slate-200: #e2e8f0;
-  --slate-100: #edf3f8;
-  --soft: #f5f7fb;
-  --panel: #ffffff;
-  --panel-soft: #f8fafc;
-  --line: #dfe7ef;
-  --shadow-soft: 0 18px 42px rgba(15, 23, 42, 0.08);
-  --shadow-card: 0 10px 25px rgba(15, 23, 42, 0.06);
-  --radius-xl: 22px;
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --radius-sm: 10px;
+
+  --primary: #ff6b00;
+  --primary-hover: #e85f00;
+  --orange: var(--primary);
+  --orange-dark: var(--primary-hover);
+
+  --page: #f7f8fa;
+  --surface: #ffffff;
+  --surface-soft: #f7f8fa;
+  --surface-muted: #f1f4f7;
+  --surface-strong: #e8edf2;
+  --surface-glass: rgba(255, 255, 255, 0.92);
+  --sidebar-surface: var(--surface);
+
+  --text: #172033;
+  --text-secondary: #64748b;
+  --text-muted: #64748b;
+  --muted: var(--text-secondary);
+  --accent-text: #c94f00;
+  --success-text: #15803d;
+  --danger-text: #b91c1c;
+  --warning-text: #b45309;
+  --info-text: #2563eb;
+
+  --border: #e5e7eb;
+  --border-strong: #cbd5e1;
+  --line: var(--border);
+
+  --tint-orange: #fff1e6;
+  --tint-orange-border: #ffd2b0;
+  --tint-green: #f0fdf4;
+  --tint-green-border: #bbf7d0;
+  --tint-red: #fef2f2;
+  --tint-red-border: #fecaca;
+  --tint-blue: #eff6ff;
+  --tint-blue-border: #bfdbfe;
+  --tint-glow: rgba(255, 237, 213, 0.45);
+
+  --focus-ring: rgba(255, 107, 0, 0.28);
+  --shadow-rgb: 15, 23, 42;
+  --shadow-boost: 1;
+  --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(15, 23, 42, 0.09);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --radius-sm: 6px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-container: 16px;
+
+  --ink: #111827;
+  --soft: var(--surface-soft);
+  --panel: var(--surface);
+  --bluegray: var(--surface-muted);
 }
 
 * {
@@ -44,75 +84,155 @@
 
 html {
   scroll-behavior: smooth;
-  background: var(--soft);
 }
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(255, 107, 44, 0.08), transparent 22%),
-    linear-gradient(180deg, #f7f9fc 0%, #f3f6fa 100%);
-  color: var(--navy-900);
+  background: var(--page);
+  color: var(--text);
+  font-size: 15px;
   line-height: 1.6;
 }
 
-img,
-svg {
-  display: block;
+:where(h1) {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+:where(h2) {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+:where(h3) {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-button,
-input,
-textarea,
-select {
+button {
   font: inherit;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+input {
+  font: inherit;
+  color: var(--text);
+}
+
+textarea {
+  font: inherit;
+  color: var(--text);
 }
 
 button {
   cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease;
 }
 
-button:active {
-  transform: translateY(1px);
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-input,
-textarea,
 select {
-  transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease,
-    background-color 0.18s ease;
+  font: inherit;
+  color: var(--text);
 }
 
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible,
-a:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 107, 44, 0.12);
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
-::selection {
-  background: rgba(255, 107, 44, 0.18);
+button {
+  font-size: 14px;
+}
+
+@media (max-width: 700px) {
+  :where(h1) {
+    font-size: 24px;
+  }
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Components use shared color tokens so surfaces retain distinct depth. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0b1120;
+  --surface: #151f2e;
+  --surface-soft: #111827;
+  --surface-muted: #1d2939;
+  --surface-strong: #263244;
+  --surface-glass: rgba(21, 31, 46, 0.92);
+  --sidebar-surface: #111827;
+  --border: #263244;
+  --border-strong: #344256;
+  --text: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #94a3b8;
+  --accent-text: #ff9a52;
+  --success-text: #4ade80;
+  --danger-text: #f87171;
+  --warning-text: #fbbf24;
+  --info-text: #93c5fd;
+  --tint-orange: rgba(255, 107, 0, 0.14);
+  --tint-orange-border: rgba(255, 107, 0, 0.38);
+  --tint-green: rgba(34, 197, 94, 0.14);
+  --tint-green-border: rgba(34, 197, 94, 0.35);
+  --tint-red: rgba(239, 68, 68, 0.14);
+  --tint-red-border: rgba(239, 68, 68, 0.38);
+  --tint-blue: rgba(96, 165, 250, 0.14);
+  --tint-blue-border: rgba(96, 165, 250, 0.35);
+  --tint-glow: rgba(255, 107, 0, 0.1);
+  --focus-ring: rgba(255, 107, 0, 0.46);
+  --shadow-rgb: 0, 0, 0;
+  --shadow-boost: 1.5;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.28);
+
+  /* Original tokens from :root, used directly by some components. --ink
+     stays dark: it is also used as a fill (code blocks, chat bubble). */
+  --muted: var(--text-muted);
+  --line: var(--border);
+  --soft: var(--surface-soft);
+  --panel: var(--surface);
+  --bluegray: var(--surface-muted);
 }

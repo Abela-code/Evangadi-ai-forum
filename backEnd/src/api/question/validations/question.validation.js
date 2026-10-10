@@ -1,8 +1,63 @@
 import { body, param, query } from "express-validator";
 import { validationErrorHandler } from "../../../middleware/validation-handler.js";
-import { QUESTION_CATEGORIES } from "../service/geminiTextCoach.service.js";
+import { QUESTION_TAGS } from "../constants/question-tags.js";
 
-const createQuestionValidation = [
+const QUESTION_TAG_NAMES = QUESTION_TAGS.map(({ name }) => name);
+
+// here is unfinished code,
+/** Same body rules as posting a question — AI coach only reads draft text. */
+// ---- T-10a --added--
+const getQuestionsValidation = [
+  query("search")
+    .optional()
+    .isString()
+    .withMessage("Search must be a string")
+    .trim(),
+  query("mine")
+    .optional()
+    .isBoolean()
+    .withMessage("Mine must be a boolean")
+    .toBoolean(),
+  query("tag")
+    .optional()
+    .isString()
+    .withMessage("Tag must be a string")
+    .bail()
+    .isIn(QUESTION_TAG_NAMES)
+    .withMessage("Tag must be one of the supported question tags."),
+  validationErrorHandler,
+];
+
+// ---- T-10b ----
+const getSingleQuestionValidation = [
+  param("questionHash")
+    .isString()
+    .withMessage("Question hash is required")
+    .matches(/^[a-f0-9]{16}$/)
+    .withMessage("Question hash must be a 16-character lowercase hex string"),
+  validationErrorHandler,
+];
+
+const getSimilarQuestionsValidation = [
+  param("questionHash")
+    .isString()
+    .withMessage("Question hash is required")
+    .matches(/^[a-f0-9]{16}$/)
+    .withMessage("Question hash must be a 16-character lowercase hex string"),
+  query("k")
+    .optional()
+    .isInt({ min: 1, max: 20 })
+    .withMessage("k must be between 1 and 20")
+    .toInt(),
+  query("threshold")
+    .optional()
+    .isFloat({ min: 0, max: 1 })
+    .withMessage("threshold must be between 0 and 1")
+    .toFloat(),
+  validationErrorHandler,
+];
+
+const generateQuestionDraftCoachValidation = [
   body("title")
     .notEmpty()
     .withMessage("Question title is required")
@@ -19,33 +74,6 @@ const createQuestionValidation = [
     .isLength({ min: 10 })
     .withMessage("Question content must be at least 10 characters")
     .trim(),
-  validationErrorHandler,
-];
-
-const getQuestionsValidation = [
-  query("search")
-    .optional()
-    .isString()
-    .withMessage("Search must be a string")
-    .trim(),
-  query("mine")
-    .optional()
-    .isBoolean()
-    .withMessage("Mine must be a boolean")
-    .toBoolean(),
-  query("category")
-    .optional()
-    .isIn(QUESTION_CATEGORIES)
-    .withMessage("Category must be one of the supported categories"),
-  validationErrorHandler,
-];
-
-const getSingleQuestionValidation = [
-  param("questionHash")
-    .isString()
-    .withMessage("Question hash is required")
-    .matches(/^[a-f0-9]{16}$/)
-    .withMessage("Question hash must be a 16-character lowercase hex string"),
   validationErrorHandler,
 ];
 
@@ -71,27 +99,7 @@ const searchQuestionsSemanticValidation = [
   validationErrorHandler,
 ];
 
-const getSimilarQuestionsValidation = [
-  param("questionHash")
-    .isString()
-    .withMessage("Question hash is required")
-    .matches(/^[a-f0-9]{16}$/)
-    .withMessage("Question hash must be a 16-character lowercase hex string"),
-  query("k")
-    .optional()
-    .isInt({ min: 1, max: 20 })
-    .withMessage("k must be between 1 and 20")
-    .toInt(),
-  query("threshold")
-    .optional()
-    .isFloat({ min: 0, max: 1 })
-    .withMessage("threshold must be between 0 and 1")
-    .toFloat(),
-  validationErrorHandler,
-];
-
-/** Same body rules as posting a question — AI coach only reads draft text. */
-const generateQuestionDraftCoachValidation = [
+const createQuestionValidation = [
   body("title")
     .notEmpty()
     .withMessage("Question title is required")
@@ -130,25 +138,12 @@ const assessAnswerAgainstQuestionValidation = [
   validationErrorHandler,
 ];
 
-const translateQuestionValidation = [
-  param("questionHash")
-    .isString()
-    .withMessage("Question hash is required")
-    .matches(/^[a-f0-9]{16}$/)
-    .withMessage("Question hash must be a 16-character lowercase hex string"),
-  body("targetLanguage")
-    .isIn(["en", "am", "fr", "es"])
-    .withMessage("Target language must be one of: en, am, fr, es"),
-  validationErrorHandler,
-];
-
 export {
   createQuestionValidation,
-  getQuestionsValidation,
   getSingleQuestionValidation,
-  searchQuestionsSemanticValidation,
-  getSimilarQuestionsValidation,
   generateQuestionDraftCoachValidation,
   assessAnswerAgainstQuestionValidation,
-  translateQuestionValidation,
+  searchQuestionsSemanticValidation,
+  getSimilarQuestionsValidation,
+  getQuestionsValidation,
 };

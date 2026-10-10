@@ -1,9 +1,8 @@
 import { body } from "express-validator";
 import { validationErrorHandler } from "../../../middleware/validation-handler.js";
 
-const registerValidation = [
+export const registerValidation = [
   body("firstName")
-    .trim()
     .notEmpty()
     .withMessage("First name is required")
     .isString()
@@ -11,7 +10,6 @@ const registerValidation = [
     .isLength({ min: 3 })
     .withMessage("First name must be at least 3 characters long"),
   body("lastName")
-    .trim()
     .notEmpty()
     .withMessage("Last name is required")
     .isString()
@@ -33,7 +31,7 @@ const registerValidation = [
   validationErrorHandler,
 ];
 
-const loginValidation = [
+export const loginValidation = [
   body("email")
     .notEmpty()
     .withMessage("Email is required")
@@ -44,5 +42,3 @@ const loginValidation = [
 
   validationErrorHandler,
 ];
-
-export { registerValidation, loginValidation };

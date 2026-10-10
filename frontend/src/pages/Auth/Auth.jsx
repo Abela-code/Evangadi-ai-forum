@@ -8,17 +8,17 @@ import {
   Code2,
   AlertCircle,
   CheckCircle2,
-  ArrowRight,
 } from "lucide-react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getErrorMessage } from "../../utils/data";
+import btn from "../../styles/buttons.module.css";
+import styles from "./Auth.module.css";
+
+import ui from "../../styles/pageStates.module.css";
 import avatar1 from "../../assets/avatar1.png";
 import avatar2 from "../../assets/avatar2.png";
 import avatar3 from "../../assets/avatar3.png";
-import btn from "../../styles/buttons.module.css";
-import styles from "./Auth.module.css";
-import ui from "../../styles/pageStates.module.css";
 
 // How long the "Registration successful" banner stays up before the card
 // switches itself to the sign-in form. The task file asks for a short pause so
@@ -30,6 +30,10 @@ export default function Auth() {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Where to go after signing in: the protected page the visitor was sent
+  // here from, or the dashboard.
+  const redirectTo = location.state?.from?.pathname || "/dashboard";
 
   const [mode, setMode] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +57,7 @@ export default function Auth() {
   useEffect(() => () => clearTimeout(switchTimer.current), []);
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   function update(e) {
@@ -183,9 +187,7 @@ export default function Auth() {
           password: form.password,
         });
 
-        navigate(location.state?.from?.pathname || "/dashboard", {
-          replace: true,
-        });
+        navigate(redirectTo, { replace: true });
       }
     } catch (err) {
       setError(
@@ -212,7 +214,7 @@ export default function Auth() {
     setForm({
       firstName: "",
       lastName: "",
-      email: "",
+      email: form.email,
       password: "",
     });
   }
@@ -226,7 +228,7 @@ export default function Auth() {
         <div className={styles.authBrandInner}>
           <div className={styles.authBrand}>
             <span className={`${ui.brandMark} ${ui.inverse}`}>
-              <MessageSquare size={16} />
+              <MessageSquare size={23} />
             </span>
 
             <div>
@@ -243,7 +245,7 @@ export default function Auth() {
 
           <div className={styles.authBenefit}>
             <span>
-              <Sparkles size={14} />
+              <Sparkles size={20} />
             </span>
 
             <div>
@@ -258,7 +260,7 @@ export default function Auth() {
 
           <div className={styles.authBenefit}>
             <span>
-              <Code2 size={14} />
+              <Code2 size={20} />
             </span>
 
             <div>
@@ -271,25 +273,11 @@ export default function Auth() {
             </div>
           </div>
 
-          <div className={styles.authCohortDivider} />
-
           <div className={styles.authCohortRow}>
-            <div className={styles.avatarGroup}>
-              <img
-                src={avatar1}
-                alt="Evangadi learner"
-                className={styles.avatarImg}
-              />
-              <img
-                src={avatar2}
-                alt="Evangadi learner"
-                className={styles.avatarImg}
-              />
-              <img
-                src={avatar3}
-                alt="Evangadi learner"
-                className={styles.avatarImg}
-              />
+            <div className={styles.authAvatars}>
+              <img src={avatar1} alt="" />
+              <img src={avatar2} alt="" />
+              <img src={avatar3} alt="" />
             </div>
 
             <div className={styles.authCohort}>
@@ -322,7 +310,7 @@ export default function Auth() {
               <p>
                 {mode === "login"
                   ? "Enter your email address and password to continue."
-                  : "Complete the form below to create your account."}
+                  : "Create your learner account to join the forum."}
               </p>
 
               {/* REGISTER NAME FIELDS */}
@@ -339,9 +327,10 @@ export default function Auth() {
                       <input
                         id="firstName"
                         name="firstName"
+                        autoComplete="given-name"
                         value={form.firstName}
                         onChange={update}
-                        placeholder="First name"
+                        placeholder="Enter your first name"
                       />
 
                       {errors.firstName && (
@@ -363,9 +352,10 @@ export default function Auth() {
                       <input
                         id="lastName"
                         name="lastName"
+                        autoComplete="family-name"
                         value={form.lastName}
                         onChange={update}
-                        placeholder="Last name"
+                        placeholder="Enter your last name"
                       />
 
                       {errors.lastName && (
@@ -389,6 +379,7 @@ export default function Auth() {
                     id="email"
                     type="email"
                     name="email"
+                    autoComplete="email"
                     value={form.email}
                     onChange={update}
                     placeholder="Enter your email address"
@@ -413,6 +404,9 @@ export default function Auth() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     name="password"
+                    autoComplete={
+                      mode === "login" ? "current-password" : "new-password"
+                    }
                     value={form.password}
                     onChange={update}
                     placeholder="••••••••"
@@ -432,7 +426,7 @@ export default function Auth() {
                       showPassword ? "Hide password" : "Show password"
                     }
                   >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
@@ -440,7 +434,7 @@ export default function Auth() {
               {/* SESSION ENDED WHILE THEY WERE USING THE APP */}
               {sessionExpired && mode === "login" && !error && (
                 <div className={styles.authSessionNotice}>
-                  <AlertCircle size={15} />
+                  <AlertCircle size={18} />
                   <span>
                     Your session ended. Sign in again to pick up where you left
                     off.
@@ -450,16 +444,16 @@ export default function Auth() {
 
               {/* VALIDATION ERROR */}
               {validationMessage && (
-                <div className={styles.authValidationAlert}>
-                  <AlertCircle size={15} />
+                <div className={styles.authValidationAlert} role="alert">
+                  <AlertCircle size={18} />
                   <span>{validationMessage}</span>
                 </div>
               )}
 
               {/* BACKEND ERROR */}
               {error && (
-                <div className={styles.authValidationAlert}>
-                  <AlertCircle size={15} />
+                <div className={styles.authValidationAlert} role="alert">
+                  <AlertCircle size={18} />
                   <span>{error}</span>
                 </div>
               )}
@@ -469,12 +463,13 @@ export default function Auth() {
                 {success && (
                   <Motion.div
                     className={styles.authSuccessAlert}
+                    role="status"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <CheckCircle2 size={15} />
+                    <CheckCircle2 size={18} />
                     <span>{success}</span>
                   </Motion.div>
                 )}
@@ -484,23 +479,15 @@ export default function Auth() {
                 className={`${btn.primaryButton} ${styles.authSubmit}`}
                 disabled={submitting || Boolean(success)}
               >
-                {submitting ? (
-                  "Please wait..."
-                ) : mode === "login" ? (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight size={14} />
-                  </>
-                ) : (
-                  <>
-                    <span>Create Account</span>
-                    <ArrowRight size={14} />
-                  </>
-                )}
+                {submitting
+                  ? "Please wait..."
+                  : mode === "login"
+                    ? "Sign In  →"
+                    : "Create Account  →"}
               </button>
 
               <div className={styles.authDivider}>
-                <span>ADDITIONAL OPTIONS</span>
+                <span>Additional options</span>
               </div>
 
               <p className={styles.authSwitch}>
@@ -509,7 +496,7 @@ export default function Auth() {
                   : "Already have an account? "}
 
                 <button type="button" onClick={switchMode}>
-                  {mode === "login" ? "Create an account" : "Back to sign in"}
+                  {mode === "login" ? "Create an account" : "Sign in"}
                 </button>
               </p>
             </form>

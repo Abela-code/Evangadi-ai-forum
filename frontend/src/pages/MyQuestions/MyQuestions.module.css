@@ -1,10 +1,12 @@
 /* Styles for MyQuestions. Scoped to this component. */
 
 .topicsIntro {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 243, 0.98));
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-card);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #dbe3ea);
+  border-radius: 12px;
+}
+
+.topicsIntro {
   padding: 28px;
   display: flex;
   justify-content: space-between;
@@ -13,27 +15,31 @@
 }
 
 .topicsIntro h1 {
-  font-size: clamp(1.9rem, 2.2vw, 2.4rem);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
   margin: 8px 0;
-  letter-spacing: -0.04em;
 }
 
 .topicsIntro p {
-  color: var(--slate-700);
-  line-height: 1.6;
+  color: var(--text-secondary, #56657a);
+  line-height: 1.55;
   margin: 0;
   max-width: 760px;
 }
 
 .topicsList {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
 }
 
 @media (max-width: 700px) {
   .topicsIntro {
     flex-direction: column;
+  }
+
+  .topicsIntro h1 {
+    font-size: 24px;
   }
 }

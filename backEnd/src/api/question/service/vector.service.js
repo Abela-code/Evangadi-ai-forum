@@ -1,4 +1,3 @@
-// import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleGenAI } from "@google/genai";
 import { safeExecute } from "../../../../schema/db.config.js";
 import { ServiceUnavailableError } from "../../../utility/errors/errors.js";
@@ -8,37 +7,34 @@ const GEMINI_EMBEDDING_MODEL =
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-const RECOMMEND_THRESHOLD = Number(process.env.RECOMMEND_THRESHOLD) || 0.75;
+// Both defaults come from real scores (npm run measure). A search is asked for,
+// so it can be looser. Related questions show up unasked, so they are stricter.
+const RECOMMEND_THRESHOLD = Number(process.env.RECOMMEND_THRESHOLD) || 0.62;
+const RELATED_THRESHOLD = Number(process.env.RELATED_THRESHOLD) || 0.75;
 const RECOMMEND_K = Number(process.env.RECOMMEND_K) || 5;
 
 if (!GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY environment variable is required");
 }
 
-// const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-// const geminiEmbeddingModel = genAI.getGenerativeModel({
-//   model: GEMINI_EMBEDDING_MODEL,
-// });
-
-/**
- * Utility to collapse consecutive whitespace characters into a single space
- * and trim leading/trailing whitespace for consistent text formatting.
- * @param {string} value - The input text to normalize.
- * @returns {string} The normalized text with collapsed whitespace and trimmed ends.
- */
 function normalizeWhitespace(value) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-/**
- * Normalize the question title by converting to lowercase, applying Unicode NFKC normalization,
- * and collapsing multiple whitespace characters into single spaces. This ensures consistent
- * text formatting for downstream tasks such as duplicate detection and vector generation.
- * @param {{title: string}} param - An object containing the question title.
- * @returns {string} The normalized question text.
- */
-function normalizeQuestionText({ title }) {
-  return normalizeWhitespace(`${title || ""}`.normalize("NFKC").toLowerCase());
+// Long pasted code adds noise, and the key part of a question is at the top.
+const MAX_EMBEDDING_CONTENT_CHARS = 2000;
+
+// Builds the text that is sent to the embedding model.
+// A question uses its title and content. A search query passes only `title`
+// and is returned as plain text. Case is kept: "useEffect" is a better signal
+// than "useeffect".
+function normalizeQuestionText({ title, content }) {
+  const cleanTitle = normalizeWhitespace(`${title || ""}`.normalize("NFKC"));
+  const cleanContent = normalizeWhitespace(
+    `${content || ""}`.normalize("NFKC"),
+  ).slice(0, MAX_EMBEDDING_CONTENT_CHARS);
+  if (!cleanContent) return cleanTitle;
+  return `Question title: ${cleanTitle}\n\nQuestion details: ${cleanContent}`;
 }
 
 /**
@@ -85,135 +81,6 @@ function calculateCosineSimilarity(vectorA, vectorB) {
 
   // Return dot product divided by product of magnitudes
   return dotProduct / (magnitudeA * magnitudeB);
-}
-
-/**
- * Generate a normalized embedding for the provided question text using the Gemini API.
- *
- * @param {string} sourceText - The text to embed.
- * @param {Object} [options] - Optional parameters to customize the embedding generation.
- * @param {string} [options.taskType='RETRIEVAL_DOCUMENT'] - The specific Gemini task type.
- *                 Use 'RETRIEVAL_QUERY' when generating embeddings for user searches.
- * @returns {Promise<{embedding: Array<number>}>} The normalized embedding vector.
- * @throws {Error} If the embedding response is invalid or missing values.
- *
- */
-async function generateQuestionEmbedding(sourceText, options = {}) {
-  const { taskType = "RETRIEVAL_DOCUMENT", questionId = null } = options;
-
-  const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  try {
-    const result = await ai.models.embedContent({
-      model: process.env.GEMINI_EMBEDDING_MODEL,
-      contents: sourceText,
-      taskType,
-      config: {
-        outputDimensionality: 768,
-      },
-    });
-
-    // console.log(result.embeddings[0].values);
-
-    let values = result?.embeddings[0]?.values;
-
-    if (!Array.isArray(values) || values.length === 0) {
-      throw new Error("Gemini embedding response does not contain values");
-    }
-
-    return {
-      embedding: values,
-    };
-  } catch (error) {
-    console.error("Error:", error);
-    console.error("========================");
-    throw error;
-  }
-}
-
-/**
- * Validate that an embedding is a valid array of numbers.
- * @param {*} embedding - The embedding to validate.
- * @throws {Error} If embedding is invalid.
- */
-function validateEmbedding(embedding) {
-  if (!Array.isArray(embedding)) {
-    throw new Error("Embedding must be an array");
-  }
-  if (embedding.length === 0) {
-    throw new Error("Embedding cannot be empty");
-  }
-  if (!embedding.every((v) => typeof v === "number" && !isNaN(v))) {
-    throw new Error("Embedding must contain only valid numbers");
-  }
-}
-
-/**
- * Store or update embedding vector in MySQL question_vectors table.
- * Uses INSERT ... ON DUPLICATE KEY UPDATE for upsert behavior.
- *
- * @param {Object} payload - The payload containing question and embedding data.
- * @param {number|string} payload.questionId - The ID of the question.
- * @param {string} payload.sourceText - The normalized source text used for embedding.
- * @param {Array<number>} [payload.embedding=[]] - The full-dimensional embedding vector from Gemini.
- * @param {string} [payload.status='ready'] - The status of the vector (e.g., 'ready', 'failed').
- * @returns {Promise<void>}
- */
-async function storeQuestionVector({
-  questionId,
-  sourceText,
-  embedding = [],
-  status = "ready",
-}) {
-  // Handle empty embeddings for failed status
-  if (status === "failed" || !embedding || embedding.length === 0) {
-    const sql = `
-      INSERT INTO question_vectors (question_id, source_text, embedding, status)
-      VALUES (?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-        source_text = VALUES(source_text),
-        embedding = VALUES(embedding),
-        status = VALUES(status),
-        updated_at = CURRENT_TIMESTAMP
-    `;
-    await safeExecute(sql, [
-      questionId,
-      sourceText,
-      JSON.stringify([]),
-      "failed",
-    ]);
-    return;
-  }
-
-  // Validate embedding before storage
-  validateEmbedding(embedding);
-
-  // Store embedding as JSON string using JSON.stringify()
-  const embeddingJson = JSON.stringify(embedding);
-
-  // Implement MySQL INSERT ... ON DUPLICATE KEY UPDATE for upsert
-  const sql = `
-    INSERT INTO question_vectors (question_id, source_text, embedding, status)
-    VALUES (?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE
-      source_text = VALUES(source_text),
-      embedding = VALUES(embedding),
-      status = VALUES(status),
-      updated_at = CURRENT_TIMESTAMP
-  `;
-
-  try {
-    await safeExecute(sql, [questionId, sourceText, embeddingJson, status]);
-  } catch (error) {
-    console.error("=== MYSQL UPSERT ERROR ===");
-    console.error("Operation: storeQuestionVector");
-    console.error(`Question ID: ${questionId}`);
-    console.error(`Embedding length: ${embedding.length}`);
-    console.error(`Status: ${status}`);
-    console.error("SQL:", sql.trim().replace(/\s+/g, " "));
-    console.error("Error:", error);
-    console.error("==========================");
-    throw error;
-  }
 }
 
 /**
@@ -360,12 +227,12 @@ async function findSimilarQuestionsByText({ sourceText, threshold, k }) {
       q.question_hash AS questionHash,
       q.title,
       q.content,
-      q.category,
       q.created_at AS createdAt,
       q.updated_at AS updatedAt,
       u.user_id AS userId,
       u.first_name AS firstName,
       u.last_name AS lastName,
+      u.avatar AS avatar,
       COUNT(DISTINCT a.answer_id) AS answerCount
     FROM questions q
     JOIN users u ON u.user_id = q.user_id
@@ -394,7 +261,6 @@ async function findSimilarQuestionsByText({ sourceText, threshold, k }) {
       questionHash: row.questionHash,
       title: row.title,
       content: row.content,
-      category: row.category,
       answerCount: row.answerCount,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -402,6 +268,7 @@ async function findSimilarQuestionsByText({ sourceText, threshold, k }) {
         id: row.userId,
         firstName: row.firstName,
         lastName: row.lastName,
+        avatar: row.avatar ?? null,
       },
     };
   });
@@ -550,12 +417,12 @@ async function findSimilarQuestionsByQuestionId({ questionId, threshold, k }) {
         q.question_hash AS questionHash,
         q.title,
         q.content,
-        q.category,
         q.created_at AS createdAt,
         q.updated_at AS updatedAt,
         u.user_id AS userId,
         u.first_name AS firstName,
         u.last_name AS lastName,
+        u.avatar AS avatar,
         COUNT(DISTINCT a.answer_id) AS answerCount
       FROM questions q
       JOIN users u ON u.user_id = q.user_id
@@ -588,7 +455,6 @@ async function findSimilarQuestionsByQuestionId({ questionId, threshold, k }) {
         questionHash: detailRow.questionHash,
         title: detailRow.title,
         content: detailRow.content,
-        category: detailRow.category,
         answerCount: detailRow.answerCount,
         createdAt: detailRow.createdAt,
         updatedAt: detailRow.updatedAt,
@@ -596,6 +462,7 @@ async function findSimilarQuestionsByQuestionId({ questionId, threshold, k }) {
           id: detailRow.userId,
           firstName: detailRow.firstName,
           lastName: detailRow.lastName,
+          avatar: detailRow.avatar ?? null,
         },
       };
     });
@@ -625,17 +492,192 @@ async function findSimilarQuestionsByQuestionId({ questionId, threshold, k }) {
 function getVectorConfig() {
   return {
     recommendThreshold: RECOMMEND_THRESHOLD,
+    relatedThreshold: RELATED_THRESHOLD,
     recommendK: RECOMMEND_K,
   };
+}
+/**
+ * Generate a normalized embedding for the provided question text using the Gemini API.
+ *
+ * @param {string} sourceText - The text to embed.
+ * @param {Object} [options] - Optional parameters to customize the embedding generation.
+ * @param {string} [options.taskType='RETRIEVAL_DOCUMENT'] - The specific Gemini task type.
+ *                 Use 'RETRIEVAL_QUERY' when generating embeddings for user searches.
+ * @returns {Promise<{embedding: Array<number>}>} The normalized embedding vector.
+ * @throws {Error} If the embedding response is invalid or missing values.
+ *
+ */
+
+async function generateQuestionEmbedding(sourceText, options = {}) {
+  const { taskType = "RETRIEVAL_DOCUMENT", questionId = null } = options;
+
+  // 10 second time limit, and the SDK's own retry when Gemini is busy
+  // (429, 5xx). The SDK does not really retry after a timeout.
+  const ai = new GoogleGenAI({
+    apiKey: GEMINI_API_KEY,
+    httpOptions: { timeout: 10000, retryOptions: { attempts: 3 } },
+  });
+  try {
+    const result = await ai.models.embedContent({
+      model: GEMINI_EMBEDDING_MODEL,
+      contents: sourceText,
+      // taskType must be inside config. Outside it, the SDK drops it silently.
+      config: {
+        taskType,
+        outputDimensionality: 768,
+      },
+    });
+
+    // console.log(result.embeddings[0].values);
+
+    let values = result?.embeddings[0]?.values;
+
+    if (!Array.isArray(values) || values.length === 0) {
+      throw new Error("Gemini embedding response does not contain values");
+    }
+
+    return {
+      embedding: values,
+    };
+  } catch (error) {
+    console.error("Error:", error);
+    console.error("========================");
+    throw error;
+  }
+}
+
+/**
+ * Validate that an embedding is a valid array of numbers.
+ * @param {*} embedding - The embedding to validate.
+ * @throws {Error} If embedding is invalid.
+ */
+function validateEmbedding(embedding) {
+  if (!Array.isArray(embedding)) {
+    throw new Error("Embedding must be an array");
+  }
+  if (embedding.length === 0) {
+    throw new Error("Embedding cannot be empty");
+  }
+  if (!embedding.every((v) => typeof v === "number" && !isNaN(v))) {
+    throw new Error("Embedding must contain only valid numbers");
+  }
+}
+
+/**
+ * Store the question vector in the database.
+ * @param {Object} payload - The payload containing question and embedding data.
+ * @param {number|string} payload.questionId - The ID of the question.
+ * @param {string} payload.sourceText - The normalized source text used for embedding.
+ * @param {Array<number>} [payload.embedding=[]] - The full-dimensional embedding vector from Gemini.
+ * @param {string} [payload.status='ready'] - The status of the vector (e.g., 'ready', 'failed').
+ * @returns {Promise<void>}
+ */
+async function storeQuestionVector({
+  questionId,
+  sourceText,
+  embedding = [],
+  status = "ready",
+}) {
+  // Handle empty embeddings for failed status
+  if (status === "failed" || !embedding || embedding.length === 0) {
+    const sql = `
+    INSERT INTO question_vectors (question_id, source_text, embedding, status)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      source_text = VALUES(source_text),
+      embedding = VALUES(embedding),
+      status = VALUES(status),
+      updated_at = CURRENT_TIMESTAMP
+  `;
+
+    await safeExecute(sql, [
+      questionId,
+      sourceText,
+      JSON.stringify([]),
+      "failed",
+    ]);
+
+    return;
+  }
+
+  // Validate embedding before storage
+  validateEmbedding(embedding);
+  // Store embedding as JSON string using JSON.stringify()
+  const embeddingJson = JSON.stringify(embedding);
+
+  // Implement MySQL INSERT ... ON DUPLICATE KEY UPDATE for upsert
+  const sql = `
+  INSERT INTO question_vectors (question_id, source_text, embedding, status)
+  VALUES (?, ?, ?, ?)
+  ON DUPLICATE KEY UPDATE
+    source_text = VALUES(source_text),
+    embedding = VALUES(embedding),
+    status = VALUES(status),
+    updated_at = CURRENT_TIMESTAMP
+`;
+
+  try {
+    await safeExecute(sql, [questionId, sourceText, embeddingJson, status]);
+  } catch (error) {
+    console.error("=== MYSQL UPSERT ERROR ===");
+    console.error("Operation: storeQuestionVector");
+    console.error(`Question ID: ${questionId}`);
+    console.error(`Embedding length: ${embedding.length}`);
+    console.error(`Status: ${status}`);
+    console.error("SQL:", sql.trim().replace(/\s+/g, " "));
+    console.error("Error:", error);
+    console.error("==========================");
+    throw error;
+  }
+}
+
+/**
+ * Embed many texts in ONE Gemini call (used for PDF chunks).
+ * One call per chunk is slow and hits the free rate limit on a big PDF.
+ *
+ * @param {string[]} texts - The texts to embed, in order.
+ * @param {Object} [options]
+ * @param {string} [options.taskType='RETRIEVAL_DOCUMENT']
+ * @returns {Promise<Array<Array<number>>>} One vector per text, same order.
+ * @throws {Error} If Gemini does not return one vector for every text.
+ */
+async function generateEmbeddingsBatch(texts, options = {}) {
+  const { taskType = "RETRIEVAL_DOCUMENT" } = options;
+
+  // Same settings as generateQuestionEmbedding, with a longer time limit
+  // because one call carries many texts.
+  const ai = new GoogleGenAI({
+    apiKey: GEMINI_API_KEY,
+    httpOptions: { timeout: 30000, retryOptions: { attempts: 3 } },
+  });
+  const result = await ai.models.embedContent({
+    model: GEMINI_EMBEDDING_MODEL,
+    contents: texts,
+    config: {
+      taskType,
+      outputDimensionality: 768,
+    },
+  });
+
+  const vectors = (result?.embeddings ?? []).map((item) => item?.values);
+  const allValid =
+    vectors.length === texts.length &&
+    vectors.every((values) => Array.isArray(values) && values.length > 0);
+  if (!allValid) {
+    throw new Error("Gemini did not return one embedding for every text");
+  }
+
+  return vectors;
 }
 
 export {
   normalizeQuestionText,
   calculateCosineSimilarity,
+  retrieveReadyEmbeddings,
   generateQuestionEmbedding,
   storeQuestionVector,
-  retrieveReadyEmbeddings,
   findSimilarQuestionsByText,
   findSimilarQuestionsByQuestionId,
   getVectorConfig,
+  generateEmbeddingsBatch,
 };

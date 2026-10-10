@@ -1,6 +1,9 @@
-import { body, param, query } from "express-validator";
+import { body } from "express-validator";
+import { param } from "express-validator";
+import { query } from "express-validator";
 import { validationErrorHandler } from "../../../middleware/validation-handler.js";
 
+// ---- T-24b (Haymanot Y.): documentIdParamValidation (shared by 4 tasks) ----
 export const documentIdParamValidation = [
   param("documentId")
     .isInt({ min: 1 })
@@ -9,6 +12,7 @@ export const documentIdParamValidation = [
   validationErrorHandler,
 ];
 
+// searchInDocumentValidation ----
 export const searchInDocumentValidation = [
   param("documentId")
     .isInt({ min: 1 })
@@ -29,7 +33,6 @@ export const searchInDocumentValidation = [
     .toInt(),
   validationErrorHandler,
 ];
-
 export const queryDocumentValidation = [
   param("documentId")
     .isInt({ min: 1 })

@@ -39,63 +39,14 @@ export async function checkAnswerFit(questionHash, answerText) {
   return response.data;
 }
 
-export async function translateQuestion(questionHash, targetLanguage) {
-  const response = await api.post(`/questions/${questionHash}/translate`, {
-    targetLanguage,
-  });
+export async function updateQuestion(questionHash, payload) {
+  const response = await api.patch(`/questions/${questionHash}`, payload);
   return response.data;
 }
 
-const translationCache = new Map();
-const translationFailures = new Set();
-const translationQueue = [];
-let activeTranslations = 0;
-const MAX_CONCURRENT_TRANSLATIONS = 4;
-
-function processTranslationQueue() {
-  while (
-    activeTranslations < MAX_CONCURRENT_TRANSLATIONS &&
-    translationQueue.length
-  ) {
-    const request = translationQueue.shift();
-    activeTranslations += 1;
-
-    translateQuestion(request.hash, request.language)
-      .then((response) => {
-        const value = response?.data ?? response;
-        if (
-          typeof value?.translatedTitle !== "string" ||
-          typeof value?.translatedContent !== "string"
-        ) {
-          throw new Error("Invalid question translation response");
-        }
-        translationCache.set(request.key, value);
-        request.resolve(value);
-      })
-      .catch((error) => {
-        translationFailures.add(request.key);
-        request.reject(error);
-      })
-      .finally(() => {
-        activeTranslations -= 1;
-        processTranslationQueue();
-      });
-  }
+export async function deleteQuestion(questionHash) {
+  const response = await api.delete(`/questions/${questionHash}`);
+  return response.data;
 }
 
-export function getQuestionTranslation(question, targetLanguage) {
-  const hash = question.question_hash || question.questionHash || question.hash;
-  const title = question.title || "";
-  const content = question.content || question.description || "";
-  const key = JSON.stringify([hash, title, content, targetLanguage]);
-
-  if (translationCache.has(key)) return Promise.resolve(translationCache.get(key));
-  if (translationFailures.has(key)) {
-    return Promise.reject(new Error("Question translation previously failed"));
-  }
-
-  return new Promise((resolve, reject) => {
-    translationQueue.push({ key, hash, language: targetLanguage, resolve, reject });
-    processTranslationQueue();
-  });
-}
+// this is a file where functions related to question API calls are defined.

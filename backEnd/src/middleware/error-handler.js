@@ -1,9 +1,11 @@
 import { StatusCodes } from "http-status-codes";
 
-const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, next) => {
   let customError = {
     statusCode: err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
-    msg: err.message || "Something went wrong try again later",
+    // Only errors we throw on purpose carry a statusCode. Anything else (a bug,
+    // a database error) is logged here and its details stay on the server.
+    msg: err.statusCode ? err.message : "Something went wrong try again later",
   };
 
   if (err?.code === "ER_DUP_ENTRY") {
@@ -11,9 +13,13 @@ const errorHandler = (err, req, res, next) => {
     customError.msg = "Duplicate value entered for a unique field";
   }
 
-  return res.status(customError.statusCode).json({
-    msg: customError.msg,
-  });
+  if (customError.statusCode === StatusCodes.INTERNAL_SERVER_ERROR) {
+    console.error(err);
+  }
+
+  return res.status(customError.statusCode).json({ msg: customError.msg });
 };
 
-export { errorHandler };
+// A request that matched no route ends here, so the client gets JSON, not HTML.
+export const notFound = (req, res) =>
+  res.status(StatusCodes.NOT_FOUND).json({ msg: "Route not found" });

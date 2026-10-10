@@ -9,10 +9,11 @@ import Questions from "./pages/Questions/Questions";
 import PostQuestion from "./pages/PostQuestion/PostQuestion";
 import QuestionDetail from "./pages/QuestionDetail/QuestionDetail";
 import MyQuestions from "./pages/MyQuestions/MyQuestions";
-import SearchPage from "./pages/SearchPage/SearchPage";
-import MapPage from "./pages/MapPage/MapPage";
 import RagDocuments from "./pages/RagDocuments/RagDocuments";
-import SavedQuestions from "./pages/SavedQuestions/SavedQuestions";
+import Rooms from "./pages/Rooms/Rooms";
+import RoomDetail from "./pages/RoomDetail/RoomDetail";
+import Profile from "./pages/Profile/Profile";
+
 import NotFound from "./pages/NotFound/NotFound";
 
 export default function App() {
@@ -27,13 +28,14 @@ export default function App() {
           <Route path="/questions" element={<Questions />} />
           <Route path="/questions/ask" element={<PostQuestion />} />
           <Route path="/my-questions" element={<MyQuestions />} />
-          <Route path="/bookmarks" element={<SavedQuestions />} />
           <Route path="/questions/:questionHash" element={<QuestionDetail />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/map" element={<MapPage />} />
           <Route path="/rag-documents" element={<RagDocuments />} />
+          <Route path="/rooms" element={<Rooms />} />
+          <Route path="/rooms/:roomId" element={<RoomDetail />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
+
       <Route path="/home" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

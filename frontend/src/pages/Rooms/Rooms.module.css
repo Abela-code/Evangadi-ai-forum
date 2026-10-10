@@ -1,0 +1,377 @@
+/* Styles for the Rooms page and the Create room dialog. Scoped to them. */
+
+/* ---------- intro ---------- */
+.intro {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-card, 12px);
+  padding: 28px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.intro h1 {
+  color: var(--text, #172033);
+  font-size: clamp(1.625rem, 1.35rem + 0.8vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 8px 0;
+}
+
+.intro p {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 760px;
+}
+
+.introActions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.introActions a,
+.introActions button {
+  min-height: 40px;
+  text-decoration: none;
+}
+
+/* ---------- list ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 18px;
+}
+
+.card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-card, 12px);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong, #cbd5e1);
+  box-shadow: var(--shadow-card-hover, 0 4px 12px rgba(15, 23, 42, 0.09));
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardTop h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--text, #172033);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.joinedTag {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 1px solid var(--tint-orange-border, #ffd2b0);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--tint-orange, #fff1e6);
+  color: var(--accent-text, #c94f00);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.cardText {
+  margin: 0;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.6;
+  min-height: 3.2em;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: var(--text-muted, #64748b);
+  font-size: 0.8125rem;
+}
+
+.cardMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.cardMeta svg {
+  flex: 0 0 auto;
+  color: var(--text-muted, #64748b);
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  margin-top: auto;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.cardBottom small {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.cardBottom button,
+.openButton {
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.openButton {
+  padding: 0 16px;
+  border-radius: var(--radius-control, 8px);
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--surface, #fff);
+  color: var(--text, #172033);
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.openButton:hover {
+  background: var(--surface-soft, #f7f8fa);
+  border-color: var(--border-strong, #cbd5e1);
+}
+
+.openButton:active {
+  transform: translateY(1px);
+}
+
+.cannotJoin {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #526077);
+}
+
+/* ---------- create room dialog ---------- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  /* Above the navbar (10), the phone tab bar (20) and the AI chat (60). */
+  z-index: 70;
+  background: rgba(17, 24, 39, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.modal {
+  width: min(480px, 100%);
+  background: var(--surface, #fff);
+  border-radius: 14px;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  box-shadow: 0 24px 60px rgba(17, 24, 39, 0.25);
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modalHead h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.modalHead button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control, 8px);
+  background: transparent;
+  color: var(--text-secondary, #64748b);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.modalHead button:hover {
+  background: var(--surface-muted, #f1f4f7);
+  color: var(--text, #172033);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.fieldTop {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.fieldTop label {
+  flex: 1;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text-secondary, #526077);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 88px;
+  font: inherit;
+}
+
+.field input {
+  min-height: 44px;
+  font: inherit;
+}
+
+.field .inputInvalid,
+.field .inputInvalid:focus {
+  border-color: var(--danger-text, #b91c1c);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
+}
+
+.fieldError {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger-text, #b91c1c);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.fieldError svg {
+  flex: none;
+}
+
+.formError {
+  margin: 0;
+  color: var(--danger-text, #b91c1c);
+  background: var(--tint-red, #fef2f2);
+  border: 1px solid var(--tint-red-border, #fecaca);
+  border-radius: var(--radius-control, 8px);
+  padding: 11px 13px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.modalNote {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #526077);
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modalActions button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-control, 8px);
+  background: var(--surface, #fff);
+  color: var(--text, #172033);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.modalActions button:hover:not(:disabled) {
+  background: var(--surface-soft, #f7f8fa);
+}
+
+.modalActions button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.openButton:focus-visible,
+.card button:focus-visible,
+.introActions a:focus-visible,
+.introActions button:focus-visible,
+.modal button:focus-visible {
+  outline: 2px solid var(--focus-ring, rgba(255, 107, 0, 0.28));
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .intro {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .cardBottom {
+    gap: 8px;
+  }
+
+  .cardBottom small {
+    overflow-wrap: anywhere;
+  }
+
+  .cardBottom button,
+  .openButton {
+    flex: 0 0 auto;
+  }
+
+  .introActions,
+  .introActions a,
+  .introActions button {
+    width: 100%;
+  }
+}

@@ -6,26 +6,17 @@ import QuestionCard from "../../components/QuestionCard/QuestionCard";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
 import EmptyState from "../../components/EmptyState/EmptyState";
-import { getErrorMessage, unwrapArray } from "../../utils/data";
+import { getErrorMessage } from "../../utils/data";
 import btn from "../../styles/buttons.module.css";
 import ui from "../../styles/pageStates.module.css";
 
-const QUESTION_CATEGORIES = [
-  "Technology",
-  "Education",
-  "Economy",
-  "Politics",
-  "Health",
-  "Science",
-  "Career",
-  "Business",
-  "Other",
-];
-
 export default function Questions() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  //We can say useSearchParams returns a two-item array, current params and a setter function.
+  // Here we only need to read, so we use the first item.
+  const [searchParams] = useSearchParams();
+  // /questions?search=react
+  //Axios: GET /api/questions?search=react
   const search = searchParams.get("search") || "";
-  const category = searchParams.get("category") || "";
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +28,8 @@ export default function Questions() {
       setError("");
 
       try {
-        const params = {};
-        if (search) params.search = search;
-        if (category) params.category = category;
-        const data = await getAllQuestions(params);
-        setQuestions(unwrapArray(data, ["questions", "results"]));
+        const data = await getAllQuestions(search ? { search } : {});
+        setQuestions(data.data);
       } catch (err) {
         setError(getErrorMessage(err, "Could not load questions."));
       } finally {
@@ -50,14 +38,7 @@ export default function Questions() {
     }
 
     load();
-  }, [search, category]);
-
-  function handleCategoryChange(event) {
-    const nextParams = new URLSearchParams(searchParams);
-    if (event.target.value) nextParams.set("category", event.target.value);
-    else nextParams.delete("category");
-    setSearchParams(nextParams);
-  }
+  }, [search]);
 
   return (
     <div className={ui.pageStack}>
@@ -68,23 +49,10 @@ export default function Questions() {
           <p>Browse questions posted by forum members.</p>
         </div>
 
-        <div className={ui.questionTools}>
-          <label className={ui.categoryFilter}>
-            Category
-            <select value={category} onChange={handleCategoryChange}>
-              <option value="">All categories</option>
-              {QUESTION_CATEGORIES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Link to="/questions/ask" className={btn.primaryButton}>
-            <PlusCircle size={18} />
-            Ask Question
-          </Link>
-        </div>
+        <Link to="/questions/ask" className={btn.primaryButton}>
+          <PlusCircle size={18} />
+          Ask Question
+        </Link>
       </section>
 
       {loading && <LoadingSpinner />}
@@ -102,16 +70,8 @@ export default function Questions() {
       )}
 
       <div className={ui.questionList}>
-        {questions.map((question, index) => (
-          <QuestionCard
-            key={
-              question.question_hash ||
-              question.questionHash ||
-              question.id ||
-              index
-            }
-            question={question}
-          />
+        {questions.map((question) => (
+          <QuestionCard key={question.questionHash} question={question} />
         ))}
       </div>
     </div>

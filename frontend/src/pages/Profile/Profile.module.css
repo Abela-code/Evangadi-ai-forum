@@ -1,0 +1,451 @@
+.pageShell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  min-height: 100%;
+  min-width: 0;
+}
+
+.card {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-card, 12px);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  padding: 24px;
+}
+
+.profileHeaderCard,
+.infoCard {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-card, 12px);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+}
+
+.profileHeaderCard {
+  padding: 28px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.avatarBlock {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.headerInfo {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 8px 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-text, #ff6b00);
+  font-weight: 600;
+}
+
+.headerInfo h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text, #172033);
+  overflow-wrap: anywhere;
+}
+
+.email,
+.bioText {
+  margin: 10px 0 0 0;
+  color: var(--text-secondary, #475569);
+  overflow-wrap: anywhere;
+}
+
+.email {
+  font-size: 0.9375rem;
+}
+
+.bioText {
+  max-width: 680px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.infoCard {
+  padding: 26px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text, #172033);
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-control, 8px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.primaryButton {
+  border: 1px solid transparent;
+  background: var(--primary, #ff6b00);
+  color: #fff;
+}
+
+.secondaryButton {
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--surface, #fff);
+  color: var(--text, #172033);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--primary-hover, #e85f00);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: var(--surface-soft, #f7f8fa);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.fileInput:focus-visible,
+.formGrid input:focus-visible,
+.formGrid textarea:focus-visible {
+  outline: 2px solid var(--focus-ring, rgba(255, 107, 0, 0.28));
+  outline-offset: 2px;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.primaryButton:active:not(:disabled),
+.secondaryButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.infoGrid,
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 24px;
+}
+
+.infoGrid > div,
+.formGrid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label,
+.formGrid span,
+.avatarLabel {
+  color: var(--text-secondary, #475569);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.infoGrid strong {
+  color: var(--text, #172033);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.avatarSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.formGrid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text, #172033);
+}
+
+.formGrid input,
+.formGrid textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-control, 8px);
+  background: var(--surface, #fff);
+  padding: 12px 14px;
+  color: var(--text, #172033);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.formGrid input:hover:not(:disabled),
+.formGrid textarea:hover {
+  border-color: var(--border-strong, #cbd5e1);
+}
+
+.formGrid input:focus,
+.formGrid textarea:focus {
+  outline: none;
+  border-color: var(--primary, #ff6b00);
+  box-shadow: 0 0 0 3px var(--focus-ring, rgba(255, 107, 0, 0.28));
+}
+
+.formGrid textarea {
+  resize: vertical;
+  min-height: 132px;
+}
+
+.formGrid input:disabled {
+  background: var(--surface-muted, #f1f4f7);
+  color: var(--text-secondary, #475569);
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.avatarUploadSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.uploadPreviewRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.previewBox {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid var(--surface, #fff);
+  outline: 1px solid var(--border, #e5e7eb);
+  background: var(--surface-muted, #f1f4f7);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  flex: 0 0 auto;
+}
+
+.previewBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploadMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-secondary, #475569);
+  min-width: 0;
+}
+
+.fileInput {
+  width: min(100%, 420px);
+  padding: 8px;
+  border: 1px dashed var(--border-strong, #cbd5e1);
+  border-radius: var(--radius-control, 8px);
+  background: var(--surface-soft, #f7f8fa);
+  color: var(--text-secondary, #64748b);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+.fileInput::file-selector-button {
+  min-height: 34px;
+  margin-right: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface, #fff);
+  color: var(--text, #172033);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.fileInput::file-selector-button:hover {
+  border-color: var(--border-strong, #cbd5e1);
+  background: var(--surface-muted, #f1f4f7);
+}
+
+.uploadMeta p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.inlineActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.loadingText,
+.errorText,
+.formError {
+  margin: 0;
+  color: var(--text, #172033);
+}
+
+.loadingText {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.errorText,
+.formError {
+  color: var(--danger-text, #dc2626);
+}
+
+.errorText,
+.formError {
+  border: 1px solid var(--tint-red-border, #fecaca);
+  border-radius: var(--radius-control, 8px);
+  background: var(--tint-red, #fef2f2);
+  padding: 12px 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.formError {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .profileHeaderCard,
+  .infoCard,
+  .card {
+    padding: 20px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .headerInfo {
+    width: 100%;
+  }
+
+  .headerInfo h1 {
+    font-size: 24px;
+  }
+
+  .sectionHeader {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .infoGrid,
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .inlineActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .uploadPreviewRow {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .profileHeaderCard,
+  .infoCard,
+  .card {
+    padding: 18px;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .sectionHeader > .primaryButton {
+    align-self: flex-start;
+  }
+
+  .inlineActions {
+    justify-content: stretch;
+  }
+
+  .inlineActions button {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .formGrid,
+  .infoGrid {
+    gap: 18px;
+  }
+
+  .uploadPreviewRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .fileInput {
+    width: 100%;
+  }
+}

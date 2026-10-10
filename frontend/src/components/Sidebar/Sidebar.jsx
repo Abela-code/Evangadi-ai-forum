@@ -1,106 +1,132 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Bookmark, BookOpen, Home, LogOut, MessageSquare, Plus } from "lucide-react";
+import { BookOpen, Home, LogOut, MessageSquare, Plus } from "lucide-react";
+import { Users } from "lucide-react";
+
 import { useAuth } from "../../context/AuthContext";
-import { useLanguage } from "../../context/LanguageContext";
+import { useProfile } from "../../context/ProfileContext";
+import UserAvatar from "../UserAvatar/UserAvatar";
 import styles from "./Sidebar.module.css";
 import ui from "../../styles/pageStates.module.css";
 
-export default function Sidebar({ isOpen, onNavigate }) {
+export default function Sidebar({ isCollapsed, onToggle }) {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { profile } = useProfile();
   const navigate = useNavigate();
-  const initials =
-    `${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`.toUpperCase();
+  const displayUser =
+    profile && Number(profile.id) === Number(user?.id)
+      ? { ...user, ...profile }
+      : user;
+
   function onLogout() {
     logout();
     navigate("/auth", { replace: true });
   }
+
   return (
-    <aside className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
+    <aside
+      className={`${styles.sidebar}${isCollapsed ? ` ${styles.collapsed}` : ""}`}
+    >
       <div>
-        <NavLink
-          to="/dashboard"
-          className={styles.sidebarBrand}
-          onClick={onNavigate}
-        >
-          <span className={ui.brandMark}>
-            <MessageSquare size={19} />
+        <nav className={styles.sidebarBrand}>
+          <NavLink to="/" className={`${ui.brandMark} ${styles.brandTile}`}>
+            <MessageSquare size={20} />
+          </NavLink>
+
+          <span className={styles.brandText}>
+            <strong>
+              Evangadi <span className={styles.brandAccent}>Forum</span>
+            </strong>
+            <small>
+              Learn together.
+              <br />
+              Ask with context.
+            </small>
           </span>
-          <span>
-            <strong>Evangadi Forum</strong>
-            <small>Learn together. Ask with context.</small>
-          </span>
-        </NavLink>
-        <div className={styles.sidebarSectionLabel}>{t("navigate")}</div>
+        </nav>
+
+        <div className={styles.sidebarSectionLabel}>Navigate</div>
+
         <nav className={styles.sidebarNav}>
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>
               `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
             }
-            onClick={onNavigate}
           >
             <Home size={18} />
-            {t("home")}
+            <span>Home</span>
           </NavLink>
+
           <NavLink
             to="/my-questions"
             className={({ isActive }) =>
               `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
             }
-            onClick={onNavigate}
           >
             <MessageSquare size={18} />
-            {t("yourTopics")}
+            <span>Your Topics</span>
           </NavLink>
+
           <NavLink
             to="/rag-documents"
             className={({ isActive }) =>
               `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
             }
-            onClick={onNavigate}
           >
             <BookOpen size={18} />
-            {t("knowledgeBase")}
+            <span>Knowledge Base</span>
           </NavLink>
+
           <NavLink
-            to="/bookmarks"
+            to="/rooms"
             className={({ isActive }) =>
               `${styles.sidebarLink}${isActive ? ` ${styles.active}` : ""}`
             }
-            onClick={onNavigate}
           >
-            <Bookmark size={18} />
-            {t("savedQuestions")}
+            <Users size={18} />
+            <span>Rooms</span>
           </NavLink>
         </nav>
       </div>
+
       <div className={styles.sidebarBottom}>
-        <NavLink
-          to="/questions/ask"
-          className={styles.sidebarNew}
-          onClick={onNavigate}
-        >
+        <NavLink to="/questions/ask" className={styles.sidebarNew}>
           <Plus size={17} />
-          {t("newQuestion")}
+          <span>New Question</span>
         </NavLink>
+
         <div className={styles.sidebarUser}>
-          <span className={ui.avatar}>{initials}</span>
-          <span>
-            <strong>
-              {user?.firstName || "User"} {user?.lastName || ""}
-            </strong>
-            <small>{t("learner")}</small>
-          </span>
+          <div className={styles.userInfo}>
+            <button
+              type="button"
+              className={styles.avatarToggle}
+              onClick={onToggle}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!isCollapsed}
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <UserAvatar person={displayUser} size="nav" />
+            </button>
+
+            <span className={styles.userText}>
+              <strong>
+                {displayUser.firstName} {displayUser.lastName}
+              </strong>
+
+              <small>Learner</small>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className={styles.sidebarLogout}
+            onClick={onLogout}
+            aria-label="Logout"
+            title="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
-        <button
-          type="button"
-          className={styles.sidebarLogout}
-          onClick={onLogout}
-        >
-          <LogOut size={16} />
-          {t("logout")}
-        </button>
       </div>
     </aside>
   );

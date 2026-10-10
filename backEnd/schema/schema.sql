@@ -13,12 +13,31 @@ CREATE TABLE `users` (
     `first_name` VARCHAR(50) NOT NULL,
     `last_name` VARCHAR(50) NOT NULL,
     `email` VARCHAR(320) NOT NULL UNIQUE,
+    `bio` TEXT NULL,
+    `avatar` VARCHAR(255) NULL,
     `password_hash` VARCHAR(255) NOT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (`email` = LOWER(`email`)),
     
     INDEX `idx_users_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 1b. User Avatars Table
+-- Profile photos are stored in the database, not on the server's disk, so they
+-- survive server restarts and redeploys (Render's free disk is wiped on every
+-- restart). users.avatar holds the URL that serves the image:
+-- /api/users/:id/avatar?v=<timestamp>
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `user_avatars`;
+CREATE TABLE `user_avatars` (
+    `user_id` INT PRIMARY KEY,
+    `mime_type` VARCHAR(30) NOT NULL,
+    `image` MEDIUMBLOB NOT NULL, -- up to 16 MB; uploads are capped at 2 MB
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
@@ -33,7 +52,7 @@ CREATE TABLE `questions` (
     `user_id` INT NOT NULL,
     `title` VARCHAR(255) NOT NULL,
     `content` TEXT NOT NULL, -- Detailed content including code sections
-    `category` VARCHAR(32) NOT NULL DEFAULT 'Other',
+    `tag` VARCHAR(50) NULL, -- Topic chosen by the AI ("react", "database", ...)
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (CHAR_LENGTH(`title`) >= 5),
@@ -42,32 +61,13 @@ CREATE TABLE `questions` (
     FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
     
     INDEX `idx_questions_user_id` (`user_id`),
-    INDEX `idx_questions_category` (`category`),
     INDEX `idx_questions_created_at` (`created_at`),
+    INDEX `idx_questions_tag` (`tag`),
     
     -- Full-text search index for exact match search mode
     FULLTEXT KEY `ft_questions_search` (`title`, `content`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- category columen 
-ALTER TABLE questions
-  ADD COLUMN category VARCHAR(32) NOT NULL DEFAULT 'Other' AFTER content,
-  ADD INDEX idx_questions_category (category);
-
-DROP TABLE IF EXISTS `bookmarks`;
-CREATE TABLE `bookmarks` (
-    `bookmark_id` INT AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT NOT NULL,
-    `question_id` INT NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
-    FOREIGN KEY (`question_id`) REFERENCES `questions`(`question_id`) ON DELETE CASCADE,
-
-    UNIQUE KEY `uniq_bookmarks_user_question` (`user_id`, `question_id`),
-    INDEX `idx_bookmarks_user_created` (`user_id`, `created_at`),
-    INDEX `idx_bookmarks_question_id` (`question_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- -----------------------------------------------------------------------------
 -- 3. Question Vectors Table
 -- Stores embeddings for the AI Semantic Search feature (Gemini default model).
@@ -152,24 +152,55 @@ CREATE TABLE `document_chunk_vectors` (
     UNIQUE KEY `uniq_chunk_vectors_chunk_id` (`chunk_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-SET FOREIGN_KEY_CHECKS = 1;
-
--- notifications table for user notifications
-CREATE TABLE IF NOT EXISTS `notifications` (
-    `notification_id` INT AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT NOT NULL,
-    `type` VARCHAR(32) NOT NULL,
-    `title` VARCHAR(128) NOT NULL,
-    `message` VARCHAR(255) NOT NULL,
-    `question_hash` CHAR(16) NOT NULL,
-    `actor_user_id` INT NOT NULL,
-    `is_read` BOOLEAN NOT NULL DEFAULT FALSE,
+-- -----------------------------------------------------------------------------
+-- 6. Discussion Rooms: fixed rooms, their members, and their messages
+-- Users cannot create rooms; only the fixed rooms at the bottom exist.
+-- -----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `rooms`;
+CREATE TABLE `rooms` (
+    `room_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(60) NOT NULL,
+    `description` VARCHAR(255) NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
-    FOREIGN KEY (`question_hash`) REFERENCES `questions`(`question_hash`) ON DELETE CASCADE,
-    FOREIGN KEY (`actor_user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
-
-    INDEX `idx_notifications_user_read_created` (`user_id`, `is_read`, `created_at`),
-    INDEX `idx_notifications_question_hash` (`question_hash`)
+    UNIQUE KEY `uniq_rooms_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The many-to-many link between users and rooms.
+-- The UNIQUE key makes a second join impossible, even in a race.
+DROP TABLE IF EXISTS `room_members`;
+CREATE TABLE `room_members` (
+    `room_member_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `room_id` INT NOT NULL,
+    `user_id` INT NOT NULL,
+    `joined_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`room_id`) REFERENCES `rooms`(`room_id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
+    UNIQUE KEY `uniq_room_members_room_user` (`room_id`, `user_id`),
+    INDEX `idx_room_members_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Plain-text messages, 1 to 2000 characters. message_id is the ordering key
+-- (timestamps can tie inside one second, ids cannot). The (room_id, message_id)
+-- index serves "the latest 50 of a room".
+DROP TABLE IF EXISTS `room_messages`;
+CREATE TABLE `room_messages` (
+    `message_id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `room_id` INT NOT NULL,
+    `user_id` INT NOT NULL,
+    `content` VARCHAR(2000) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`room_id`) REFERENCES `rooms`(`room_id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
+    INDEX `idx_room_messages_room_message` (`room_id`, `message_id`),
+    INDEX `idx_room_messages_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `rooms` (`name`, `description`) VALUES
+    ('General Discussion', 'Introduce yourself, ask anything, and chat with fellow learners.'),
+    ('Frontend Development', 'HTML, CSS, JavaScript and React: layouts, components and bugs.'),
+    ('Backend Development', 'Node.js, Express and REST APIs: routes, auth and server errors.'),
+    ('Databases & SQL', 'MySQL queries, table design and connecting your app to a database.'),
+    ('Projects & Code Review', 'Share what you built and get feedback on your code.'),
+    ('Career & Interviews', 'CVs, portfolios, interview practice and landing your first job.');
+
+SET FOREIGN_KEY_CHECKS = 1;

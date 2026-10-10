@@ -1,0 +1,53 @@
+/* Styles for UserAvatar. Scoped to this component.
+   The two colors come from UserAvatar.jsx (they depend on the user). */
+
+.avatar {
+  flex: none;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border, rgba(15, 23, 42, 0.12));
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  user-select: none;
+  /* Photos fill the circle without being stretched: a tall or wide photo is
+     cropped to its centre instead of squashed. */
+  object-fit: cover;
+}
+
+.small {
+  width: 28px;
+  height: 28px;
+  font-size: 0.66rem;
+}
+
+/* Navbar and sidebar: the logged-in user. */
+.nav {
+  width: 44px;
+  height: 44px;
+  font-size: 0.95rem;
+}
+
+/* Question rows, answers, the question page, and room messages (medium).
+   Same size everywhere a person appears next to what they wrote. */
+.thread {
+  width: 52px;
+  height: 52px;
+  font-size: 1.05rem;
+}
+
+.medium {
+  width: 52px;
+  height: 52px;
+  font-size: 1.05rem;
+}
+
+.large {
+  width: 104px;
+  height: 104px;
+  font-size: 1.875rem;
+  border: 2px solid var(--surface, #fff);
+  outline: 1px solid var(--border, rgba(15, 23, 42, 0.14));
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.06));
+}

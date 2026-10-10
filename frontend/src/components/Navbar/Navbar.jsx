@@ -1,16 +1,11 @@
-import { Bell, LogOut, Menu, Search } from "lucide-react";
+import { LogOut, Moon, Search, Sun } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useLanguage } from "../../context/LanguageContext";
-import {
-  getNotifications,
-  markAllNotificationsAsRead,
-  markNotificationAsRead,
-} from "../../api/notification.api";
+import { useProfile } from "../../context/ProfileContext";
+import UserAvatar from "../UserAvatar/UserAvatar";
 import btn from "../../styles/buttons.module.css";
 import styles from "./Navbar.module.css";
-import ui from "../../styles/pageStates.module.css";
 const TITLES = {
   "/dashboard": [
     "Home",
@@ -28,74 +23,25 @@ const TITLES = {
     "Knowledge Base",
     "Course files, retrieval, and grounded references.",
   ],
-  "/search": [
-    "Semantic search",
-    "Find questions by meaning, not only exact words.",
+  "/profile": [
+    "My Profile",
+    "View and update your personal information, bio, and avatar.",
   ],
 };
-export default function Navbar({
-  isMenuOpen,
-  onMenuToggle,
-  onNotificationsOpen,
-}) {
+export default function Navbar() {
   const { pathname } = useLocation(),
     navigate = useNavigate(),
     { user, logout } = useAuth(),
-    { language, setLanguage, languages, t } = useLanguage(),
+    { profile } = useProfile(),
     [search, setSearch] = useState("");
-  const [notificationState, setNotificationState] = useState({
-    notifications: [],
-    unreadCount: 0,
-  });
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
-  const [notificationsError, setNotificationsError] = useState("");
-  const [now, setNow] = useState(() => Date.now());
-  const notificationMenuRef = useRef(null);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadNotifications() {
-      setNotificationsLoading(true);
-      setNow(Date.now());
-      try {
-        const data = await getNotifications();
-        if (active) {
-          setNotificationState({
-            notifications: data.notifications || [],
-            unreadCount: data.unreadCount || 0,
-          });
-          setNotificationsError("");
-        }
-      } catch {
-        if (active) setNotificationsError("Could not load notifications.");
-      } finally {
-        if (active) setNotificationsLoading(false);
-      }
-    }
-
-    loadNotifications();
-    const intervalId = window.setInterval(loadNotifications, 20000);
-
-    return () => {
-      active = false;
-      window.clearInterval(intervalId);
-    };
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!notificationsOpen) return undefined;
-
-    function handleOutsideClick(event) {
-      if (!notificationMenuRef.current?.contains(event.target)) {
-        setNotificationsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [notificationsOpen]);
+  const displayUser =
+    profile && Number(profile.id) === Number(user?.id)
+      ? { ...user, ...profile }
+      : user;
+  // index.html applies the saved theme before React mounts; start from it.
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+  );
   const [title, subtitle] =
     pathname.startsWith("/questions/") && !TITLES[pathname]
       ? [
@@ -108,176 +54,60 @@ export default function Navbar({
     if (search.trim())
       navigate(`/questions?search=${encodeURIComponent(search.trim())}`);
   }
+  function toggleTheme() {
+    const next = theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch {
+      // Storage unavailable: the theme still applies for this visit.
+    }
+    setTheme(next);
+  }
   function onLogout() {
     logout();
     navigate("/auth", { replace: true });
   }
-  async function openNotification(notification) {
-    if (!notification.isRead) {
-      try {
-        await markNotificationAsRead(notification.id);
-        setNotificationState((current) => ({
-          ...current,
-          unreadCount: Math.max(0, current.unreadCount - 1),
-          notifications: current.notifications.map((item) =>
-            item.id === notification.id ? { ...item, isRead: true } : item,
-          ),
-        }));
-      } catch {
-        setNotificationsError("Could not update notification.");
-      }
-    }
-
-    setNotificationsOpen(false);
-    navigate(`/questions/${notification.questionHash}`);
-  }
-  async function readAllNotifications() {
-    try {
-      await markAllNotificationsAsRead();
-      setNotificationState((current) => ({
-        unreadCount: 0,
-        notifications: current.notifications.map((item) => ({
-          ...item,
-          isRead: true,
-        })),
-      }));
-    } catch {
-      setNotificationsError("Could not update notifications.");
-    }
-  }
-  function relativeTime(value) {
-    const seconds = Math.max(0, Math.floor((now - new Date(value)) / 1000));
-    if (seconds < 60) return "Just now";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-    const days = Math.floor(hours / 24);
-    return `${days} day${days === 1 ? "" : "s"} ago`;
-  }
-  const translatedTitle =
-    pathname === "/dashboard"
-      ? t("home")
-      : pathname === "/questions/ask"
-        ? t("newQuestion")
-        : pathname === "/rag-documents"
-          ? t("knowledgeBase")
-          : title;
-
   return (
     <header className={styles.navbar}>
-      <button
-        type="button"
-        className={`${btn.iconButton} ${styles.menuButton}`}
-        aria-label="Toggle menu"
-        aria-expanded={isMenuOpen}
-        onClick={() => {
-          setNotificationsOpen(false);
-          onMenuToggle();
-        }}
-      >
-        <Menu size={20} />
-      </button>
       <div className={styles.navbarPageTitle}>
-        <strong>{translatedTitle}</strong>
+        <strong>{title}</strong>
         <small>{subtitle}</small>
       </div>
-      <form className={styles.navbarSearch} onSubmit={submit}>
-        <Search size={17} />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("searchQuestions")}
-        />
-      </form>
+      {/* The Dashboard has its own keyword/semantic search. */}
+      {pathname !== "/dashboard" && (
+        <form className={styles.navbarSearch} onSubmit={submit}>
+          <Search size={17} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search questions by keyword..."
+          />
+        </form>
+      )}
       <div className={styles.navbarUser}>
-        <label className={styles.languageControl}>
-          <span>{t("language")}:</span>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-          >
-            {languages.map((item) => (
-              <option key={item.code} value={item.code}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
         <strong>
-          {user?.firstName || "User"} {user?.lastName || ""}
+          {displayUser.firstName} {displayUser.lastName}
         </strong>
-        <span className={`${ui.avatar} ${ui.small}`}>
-          {`${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`.toUpperCase()}
-        </span>
-        <div className={styles.notificationMenu} ref={notificationMenuRef}>
-          <button
-            type="button"
-            className={btn.iconButton}
-            aria-label="Notifications"
-            onClick={() => {
-              setNotificationsOpen((open) => {
-                const nextOpen = !open;
-                if (nextOpen) onNotificationsOpen();
-                return nextOpen;
-              });
-            }}
-          >
-            <Bell size={18} />
-            {notificationState.unreadCount > 0 && (
-              <span className={styles.notificationBadge}>
-                {notificationState.unreadCount > 99
-                  ? "99+"
-                  : notificationState.unreadCount}
-              </span>
-            )}
-          </button>
-
-          {notificationsOpen && (
-            <div className={styles.notificationPanel}>
-              <div className={styles.notificationHeader}>
-                <strong>Notifications</strong>
-                {notificationState.unreadCount > 0 && (
-                  <button type="button" onClick={readAllNotifications}>
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-              {notificationsLoading ? (
-                <p className={styles.notificationState}>Loading...</p>
-              ) : notificationsError ? (
-                <p className={styles.notificationError}>{notificationsError}</p>
-              ) : notificationState.notifications.length === 0 ? (
-                <p className={styles.notificationState}>You're all caught up</p>
-              ) : (
-                <div className={styles.notificationList}>
-                  {notificationState.notifications.map((notification) => (
-                    <button
-                      type="button"
-                      className={`${styles.notificationItem} ${
-                        notification.isRead ? "" : styles.unread
-                      }`}
-                      key={notification.id}
-                      onClick={() => openNotification(notification)}
-                    >
-                      <span className={styles.notificationIcon}>
-                        <Bell size={15} />
-                      </span>
-                      <span>
-                        <strong>{notification.title}</strong>
-                        <span>{notification.message}</span>
-                        <small>
-                          {notification.questionTitle} ·{" "}
-                          {relativeTime(notification.createdAt)}
-                        </small>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <button
+          type="button"
+          className={styles.profileButton}
+          onClick={() => navigate("/profile")}
+          aria-label="Navigate to user profile"
+        >
+          <UserAvatar person={displayUser} size="nav" />
+        </button>
+        <button
+          type="button"
+          className={btn.iconButton}
+          onClick={toggleTheme}
+          aria-label={
+            theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
+          title={theme === "dark" ? "Light mode" : "Dark mode"}
+        >
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
         <button className={btn.iconButton} onClick={onLogout}>
           <LogOut size={18} />
         </button>

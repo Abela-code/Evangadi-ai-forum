@@ -1,240 +1,216 @@
-/* Styles for Auth. Scoped to this component. */
+/* Styles for Auth. Scoped to this component.
+   Colours are sampled from the supplied design mockups.
+   All sizing uses clamp() so the layout scales between breakpoints
+   instead of jumping. */
 
 .authPage {
+  /* One knob for the space between form fields. Keep this equal to the
+     bottom margin .formField gets in pageStates.module.css. */
+  --auth-field-gap: 18px;
+
   min-height: 100vh;
+  min-height: 100dvh; /* accounts for mobile browser toolbars */
   display: grid;
-  grid-template-columns: 45% 55%;
-  background: #f8fafc;
+  /* Design is 720 / 880 at 1600px wide = 45% / 55% */
+  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+  background: var(--surface-soft, #f8fafc);
 }
 
-/* =========================================================
-   LEFT BRAND PANEL
-   ========================================================= */
+/* LEFT PANEL */
+
 .authBrandPanel {
-  background: linear-gradient(180deg, #f26a18 0%, #d54c0c 50%, #ca460c 100%);
-  color: #ffffff;
+  background: linear-gradient(160deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 30px;
+  /* 104px side padding at 1600px, shrinking on narrower screens;
+     vertical padding follows viewport height */
+  padding: clamp(24px, 4vh, 48px) clamp(28px, 6.5vw, 104px);
 }
 
 .authBrandInner {
   width: 100%;
-  max-width: 328px;
+  max-width: 512px;
 }
 
 .authBrand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-}
-
-.authBrand > span {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
-  background: #ffffff !important;
-  color: #f97316 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
+  gap: 16px;
 }
 
 .authBrand h2 {
-  font-size: 0.96rem;
-  font-weight: 700;
+  font-size: clamp(1.25rem, 1rem + 0.8vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.25;
   margin: 0;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
 }
 
 .authBrand p {
-  margin: 2px 0 0;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.62rem;
-  line-height: 1.2;
+  margin: 3px 0 0;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .authIntro {
-  font-size: 0.7rem;
-  line-height: 1.58;
-  margin: 0 0 18px;
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 400;
+  font-size: clamp(0.92rem, 0.85rem + 0.25vw, 1rem);
+  line-height: 1.65;
+  /* 32 / 40 in the design, tightening on short screens */
+  margin: clamp(16px, 3vh, 32px) 0 clamp(20px, 3.6vh, 40px);
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .authBenefit {
   display: grid;
-  grid-template-columns: 26px 1fr;
-  gap: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  padding: 11px 14px;
-  margin-bottom: 11px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: clamp(16px, 1.6vw, 24px);
+  margin: 0 0 clamp(12px, 2.4vh, 24px);
 }
 
 .authBenefit > span {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  flex-shrink: 0;
 }
 
 .authBenefit strong {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: #ffffff;
   display: block;
-  margin-bottom: 2px;
+  font-size: clamp(1rem, 0.9rem + 0.3vw, 1.125rem);
+  font-weight: 600;
+  color: #fff; /* design shows white; a global rule was turning this navy */
 }
 
 .authBenefit p {
-  margin: 0;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.63rem;
+  margin: 4px 0 0;
+  line-height: 1.57;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.875rem;
 }
 
-.authCohortDivider {
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
-  margin: 18px 0 15px;
-}
+/* COHORT ROW: avatar stack + strip, under a thin rule */
 
 .authCohortRow {
+  /* design: 48px gap, 1px rule, 32px gap. Both gaps shrink on short screens */
+  --cohort-above: clamp(20px, 4.5vh, 48px);
+  --cohort-below: clamp(16px, 3vh, 32px);
+
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  margin-top: calc(var(--cohort-above) + var(--cohort-below) + 1px);
 }
 
-.avatarGroup {
+.authCohortRow::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(-1px - var(--cohort-below));
+  height: 1px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.authAvatars {
   display: flex;
-  align-items: center;
-  flex-shrink: 0;
+  flex: 0 0 auto;
 }
 
-.avatarImg {
-  width: 24px;
-  height: 24px;
+.authAvatars img {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 1.5px solid #ffffff;
+  border: 2px solid var(--border, #fff);
   object-fit: cover;
-  margin-left: -6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  background: var(--surface, #fff);
   display: block;
 }
 
-.avatarImg:first-child {
-  margin-left: 0;
+.authAvatars img + img {
+  margin-left: -8px; /* 8px overlap, as in the design */
 }
 
 .authCohort {
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 5px;
-  padding: 6px 12px;
-  font-size: 0.63rem;
-  color: #ffffff;
-  line-height: 1.35;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 16px 12px;
+  background: rgba(255, 255, 255, 0.17);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
-/* =========================================================
-   RIGHT FORM PANEL & CARD
-   ========================================================= */
+/* RIGHT PANEL */
+
 .authFormPanel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 20px;
-  background: #f8fafc;
-  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  /* vertical padding follows viewport HEIGHT so short laptops keep the card on screen */
+  padding: clamp(16px, 4vh, 40px) clamp(16px, 4vw, 40px);
+  /* soft warm glow at the top, as in the design */
+  background: radial-gradient(
+    600px circle at 50% 0,
+    var(--tint-glow, rgba(255, 237, 213, 0.45)),
+    transparent
+  );
 }
 
 .authCard {
-  width: 288px;
-  max-width: 100%;
-  background: #ffffff;
-  border: 1px solid #edf2f7;
-  border-radius: 14px;
-  padding: 34px 22px 26px;
+  width: min(448px, 100%);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 16px;
+  padding: clamp(28px, 5vh, 48px) clamp(20px, 6vw, 48px);
   box-shadow:
-    0 10px 30px -5px rgba(0, 0, 0, 0.05),
-    0 8px 10px -6px rgba(0, 0, 0, 0.03);
-  box-sizing: border-box;
+    0 1px 3px
+      rgba(var(--shadow-rgb, 15, 23, 42), calc(0.08 * var(--shadow-boost, 1))),
+    0 8px 24px
+      rgba(var(--shadow-rgb, 15, 23, 42), calc(0.06 * var(--shadow-boost, 1)));
 }
 
 .authCard h1 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 4px;
+  font-size: clamp(1.3rem, 1.1rem + 0.9vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.3;
   letter-spacing: -0.01em;
+  color: var(--text, #0f172a);
+  margin: 0 0 6px;
 }
 
 .authCard p:first-of-type {
-  color: #64748b;
-  font-size: 0.67rem;
-  margin: 0 0 18px;
-  line-height: 1.4;
-  white-space: nowrap;
+  color: var(--text-secondary, #334155);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  margin: 0 0 clamp(20px, 3.5vh, 28px);
 }
+
+/* REGISTER NAME FIELDS
+   The wrapper stays in the JSX. It now spaces its two fields with the same
+   gap every other field uses, so First/Last/Email/Password are even. */
 
 .formRow {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* Label & Input Overrides */
-.authCard div[class*="formField"] {
   display: grid;
-  gap: 5px;
-  margin-bottom: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--auth-field-gap);
+  margin-bottom: var(--auth-field-gap);
 }
 
-.authCard label {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 0;
-  line-height: 1.2;
+/* Doubled class = enough specificity to cancel .formField's own margin
+   (including any :last-child / sibling variants) without !important. */
+.formRow.formRow > div {
+  margin: 0;
 }
 
-.authCard input {
-  width: 100%;
-  height: 34px;
-  padding: 7px 11px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 0.72rem;
-  outline: none;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-  box-sizing: border-box;
-}
-
-.authCard input::placeholder {
-  color: #9ca3af;
-  opacity: 1;
-}
-
-.authCard input:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 2.5px rgba(249, 115, 22, 0.12);
-}
+/* INPUT WRAPPERS */
 
 .authInputWrap {
   position: relative;
@@ -243,29 +219,34 @@
 
 .authInputWrap input {
   width: 100%;
-  padding-right: 30px;
+  font-size: 1rem; /* 16px: matches design and stops iOS zooming on focus */
 }
 
+/* Room for the error icon is only reserved when there is one, so
+   placeholders are not clipped on narrow phones */
 .authInputWrap.hasError input {
-  border-color: #ef4444;
+  border-color: var(--danger-text, #b91c1c);
+  padding-right: 42px;
 }
 
 .authInputWrap.hasError input:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 2.5px rgba(239, 68, 68, 0.1);
+  border-color: var(--danger-text, #b91c1c);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
 }
 
 .authErrorIcon {
   position: absolute;
-  right: 9px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dc2626;
+  color: var(--danger-text, #b91c1c);
   pointer-events: none;
 }
+
+/* PASSWORD */
 
 .passwordWrap {
   position: relative;
@@ -274,205 +255,290 @@
 
 .passwordWrap input {
   width: 100%;
-  padding-right: 30px;
+  padding-right: 46px; /* eye toggle */
+  font-size: 1rem;
 }
 
 .passwordWrap.hasError input {
-  border-color: #ef4444;
+  border-color: var(--danger-text, #b91c1c);
+  padding-right: 82px; /* eye toggle + error icon */
 }
 
 .passwordWrap.hasError input:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 2.5px rgba(239, 68, 68, 0.1);
+  border-color: var(--danger-text, #b91c1c);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
 }
 
 .passwordErrorIcon {
   position: absolute;
-  right: 30px;
+  right: 45px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dc2626;
+  color: var(--danger-text, #b91c1c);
   pointer-events: none;
 }
 
 .passwordToggle {
   position: absolute;
-  right: 7px;
+  right: 5px;
   top: 50%;
   transform: translateY(-50%);
+  /* 36px hit area so it is tappable on phones; icon stays 18px */
+  width: 36px;
+  height: 36px;
   border: none;
+  border-radius: var(--radius-sm, 6px);
   background: transparent;
-  padding: 2px;
-  color: #64748b;
+  padding: 0;
+  color: var(--text-secondary, #334155);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
 }
 
 .passwordToggle:hover {
-  color: #0f172a;
+  color: var(--text, #0f172a);
+  background: var(--surface-muted, #f1f4f7);
 }
 
-/* =========================================================
-   SUBMIT BUTTON & SWITCH
-   ========================================================= */
+/* SUBMIT */
+
 .authSubmit {
   width: 100%;
-  height: 33px;
-  min-height: 33px;
-  padding: 0 14px;
-  border-radius: 6px;
-  background: #f97316 !important;
-  border: none !important;
-  color: #ffffff !important;
-  font-weight: 600;
-  font-size: 0.74rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  margin-top: 6px;
-  box-sizing: border-box;
+  margin-top: 10px;
 }
 
-.authSubmit:hover:not(:disabled) {
-  background: #ea580c !important;
-}
-
-.authSubmit:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
+/* DIVIDER */
 
 .authDivider {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 20px 0 16px;
-  color: #94a3b8;
-  font-size: 0.54rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  gap: 16px;
+  /* 48 / 56 in the design, tightening on short screens */
+  margin: clamp(24px, 4.5vh, 48px) 0 clamp(20px, 5vh, 56px);
+  color: var(--text-muted, #94a3b8);
   text-transform: uppercase;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-.authDivider:before,
-.authDivider:after {
+.authDivider::before,
+.authDivider::after {
   content: "";
   height: 1px;
-  background: #e2e8f0;
+  background: var(--surface-muted, #e2e8f0);
   flex: 1;
 }
 
+/* SWITCH LOGIN / REGISTER (left-aligned in the design) */
+
 .authSwitch {
-  text-align: center;
-  color: #334155 !important;
-  font-size: 0.65rem;
   margin: 0;
-  line-height: 1.3;
+  text-align: left;
+  color: var(--text-secondary, #334155) !important;
+  font-size: 0.875rem;
+  line-height: 1.45;
 }
 
 .authSwitch button {
-  border: none;
+  border: 0;
   background: transparent;
-  color: #ea580c;
-  font-weight: 600;
+  color: var(--orange);
+  font: inherit;
+  font-weight: 500;
   padding: 0;
-  margin-left: 2px;
   cursor: pointer;
-  font-size: 0.65rem;
 }
 
 .authSwitch button:hover {
   text-decoration: underline;
-  color: #c2410c;
 }
 
-/* =========================================================
-   ALERTS & FEEDBACK
-   ========================================================= */
+/* VALIDATION */
+
 .authValidationAlert {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 2px 0 10px;
-  padding: 7px 10px;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  background: #fff5f5;
-  color: #dc2626;
-  font-size: 0.66rem;
-  line-height: 1.35;
+  gap: 8px;
+  margin: 14px 0 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--tint-red-border, #fecaca);
+  border-radius: 8px;
+  background: var(--tint-red, #fef2f2);
+  color: var(--danger-text, #b91c1c);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere; /* long backend messages / emails never overflow */
+  text-align: left;
 }
 
 .authValidationAlert svg {
   flex-shrink: 0;
 }
 
+/* SUCCESS */
+
 .authSuccessAlert {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 2px 0 10px;
-  padding: 7px 10px;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
-  background: #f0fdf4;
-  color: #15803d;
-  font-size: 0.66rem;
-  line-height: 1.35;
-  overflow: hidden;
+  gap: 8px;
+  margin: 14px 0 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--tint-green-border, #bbf7d0);
+  border-radius: 8px;
+  background: var(--tint-green, #f0fdf4);
+  color: var(--success-text, #16a34a);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .authSuccessAlert svg {
   flex-shrink: 0;
 }
 
+/* SESSION MESSAGE */
+
 .authSessionNotice {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #eef4fb;
-  border: 1px solid #c5d8ec;
-  color: #2c4a6b;
-  border-radius: 6px;
-  padding: 7px 10px;
-  font-size: 0.66rem;
-  line-height: 1.35;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-top: 14px;
+  background: var(--surface-soft, #eef4fb);
+  border: 1px solid var(--border-strong, #c5d8ec);
+  color: var(--info-text, #2c4a6b);
+  border-radius: 8px;
+  padding: 11px 13px;
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .authSessionNotice svg {
   flex: 0 0 auto;
 }
 
-/* =========================================================
-   RESPONSIVE DESIGN
-   ========================================================= */
-@media (max-width: 860px) {
+/* RESPONSIVE */
+
+/* On shorter desktop viewports, fit both panels without hiding their content. */
+@media (min-width: 901px) and (max-height: 800px) {
+  .authBrandPanel {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .authIntro {
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+
+  .authBenefit {
+    padding: 12px;
+    margin-bottom: 6px;
+  }
+
+  .authCohortRow {
+    --cohort-above: 8px;
+    --cohort-below: 6px;
+  }
+
+  .authCohort {
+    padding: 12px 10px;
+  }
+
+  .authFormPanel {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .authCard {
+    padding-top: clamp(20px, 3vh, 24px);
+    padding-bottom: clamp(20px, 3vh, 24px);
+  }
+}
+
+/* Tablets and phones: one column. The brand panel collapses to a slim
+   header (logo + name) so the page keeps its identity.
+   To hide it completely instead, set .authBrandPanel { display: none; } */
+@media (max-width: 900px) {
   .authPage {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr; /* header takes its height, form fills the rest */
   }
 
   .authBrandPanel {
+    justify-content: flex-start;
+    padding: 14px clamp(16px, 4vw, 40px);
+  }
+
+  .authBrandInner {
+    max-width: none;
+  }
+
+  .authIntro,
+  .authBenefit,
+  .authCohortRow {
+    display: none;
+  }
+
+  .authBrand {
+    gap: 12px;
+  }
+
+  .authBrand h2 {
+    font-size: 1.1rem;
+  }
+
+  .authBrand p {
+    margin-top: 1px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+  .authFormPanel {
+    padding: 16px 12px 24px;
+    /* a tall form starts at the top instead of being centred */
+    align-items: start;
+  }
+
+  .authCard {
+    border-radius: 14px;
+  }
+}
+
+/* Very small phones (320px) */
+@media (max-width: 340px) {
+  .authBrand p {
+    display: none;
+  }
+
+  .authDivider {
+    gap: 10px;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Phones in landscape: height is the scarce dimension */
+@media (max-height: 520px) and (max-width: 900px) {
+  .authBrandPanel {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .authBrand p {
     display: none;
   }
 
   .authFormPanel {
-    padding: 24px 16px;
-  }
-
-  .authCard {
-    width: 100%;
-    max-width: 360px;
-    padding: 28px 22px 24px;
+    align-items: start;
   }
 }

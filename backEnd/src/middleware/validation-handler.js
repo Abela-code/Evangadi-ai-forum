@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { BadRequestError } from "../utility/errors/errors.js";
 
-const validationErrorHandler = (req, res, next) => {
+export const validationErrorHandler = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorMessages = errors.array().map((err) => err.msg);
@@ -9,5 +9,3 @@ const validationErrorHandler = (req, res, next) => {
   }
   next();
 };
-
-export { validationErrorHandler };

@@ -1,35 +1,35 @@
 /* Styles for Layout. Scoped to this component. */
 
 .appLayout {
-  position: relative;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  background: transparent;
+  grid-template-columns: 240px 1fr;
+  background: var(--page, #f8fafc);
+  transition: grid-template-columns 0.22s ease;
 }
 
-.sidebarOverlay {
-  display: none;
+.appLayout.sidebarCollapsed {
+  grid-template-columns: 72px 1fr;
 }
 
 .appMain {
   min-width: 0;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 .pageContent {
-  flex: 1;
-  padding: 28px 30px 36px;
-  max-width: 1380px;
+  padding: 28px;
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
 }
 
 @media (max-width: 980px) {
   .appLayout {
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: 200px 1fr;
+  }
+
+  .appLayout.sidebarCollapsed {
+    grid-template-columns: 72px 1fr;
   }
 }
 
@@ -37,28 +37,25 @@
   .appLayout {
     display: block;
   }
+}
 
-  .sidebarOverlay {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 5;
-    border: 0;
-    background: rgba(15, 23, 42, 0.24);
-    animation: overlayIn 180ms ease-out;
+@media (max-width: 700px) {
+  .pageContent {
+    padding: 18px;
   }
 
-  .pageContent {
-    padding: 18px 18px 28px;
+  /* Room for the bottom tab bar (Sidebar on phones). */
+  .appMain {
+    padding-bottom: 72px;
   }
 }
 
-@keyframes overlayIn {
-  from {
-    opacity: 0;
-  }
+.appMain {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  to {
-    opacity: 1;
-  }
+.pageContent {
+  flex: 1;
 }

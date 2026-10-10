@@ -42,10 +42,6 @@ const answerIdValidation = [
 ];
 
 const updateAnswerValidation = [
-  param("answerId")
-    .isInt({ min: 1 })
-    .withMessage("Answer id must be a positive integer")
-    .toInt(),
   body("content")
     .notEmpty()
     .withMessage("Answer content is required")

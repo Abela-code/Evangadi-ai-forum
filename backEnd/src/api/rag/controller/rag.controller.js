@@ -1,14 +1,23 @@
-import { StatusCodes } from "http-status-codes";
-import {
-  createDocumentFromUploadService,
-  deleteDocumentService,
-  getDocumentFilePathService,
-  getDocumentMetaService,
-  listDocumentsForUserService,
-  queryDocumentService,
-  searchInDocumentService,
-} from "../service/rag.service.js";
+// RAG controllers. A controller reads the request, calls one service and
+// sends the JSON reply. Errors go to next(error).
+//
+// Write your controller between your own markers and use "export const".
+// Imports: add them below, one per line. On a merge conflict in the imports,
+// keep BOTH lines.
 
+import fs from "node:fs/promises";
+import { StatusCodes } from "http-status-codes";
+import { NotFoundError } from "../../../utility/errors/errors.js";
+import { assertOwnedDocument } from "../service/rag.service.js";
+import { createDocumentFromUploadService } from "../service/rag.service.js";
+import { deleteDocumentService } from "../service/rag.service.js";
+import { getDocumentMetaService } from "../service/rag.service.js";
+import { listDocumentsForUserService } from "../service/rag.service.js";
+import { queryDocumentService } from "../service/rag.service.js";
+import { resolveDocumentAbsolutePath } from "../service/rag.service.js";
+import { searchInDocumentService } from "../service/rag.service.js";
+
+// ---- T-22 (Yabets): createDocumentController ----
 /**
  * Handles uploading a PDF and building its chunk embeddings.
  */
@@ -28,7 +37,9 @@ export const createDocumentController = async (req, res, next) => {
     next(error);
   }
 };
+// ---- end T-22 ----
 
+// ---- T-24a (Natinael): listDocumentsController ----
 /**
  * Handles listing the authenticated user's documents, newest first.
  */
@@ -45,7 +56,9 @@ export const listDocumentsController = async (req, res, next) => {
     next(error);
   }
 };
+// ---- end T-24a ----
 
+// ---- T-24b (Haymanot Y.): getDocumentMetaController ----
 /**
  * Handles fetching one document's processing status and metadata.
  */
@@ -65,23 +78,34 @@ export const getDocumentMetaController = async (req, res, next) => {
     next(error);
   }
 };
+// ---- end T-24b ----
 
+// ---- T-24c (Wonde): getDocumentFileController ----
 /**
  * Streams the stored PDF back so the browser can preview it inline.
  */
 export const getDocumentFileController = async (req, res, next) => {
   try {
-    const { absolutePath, title } = await getDocumentFilePathService({
-      documentId: req.params.documentId,
-      userId: req.user.id,
-    });
+    // 404 when the document does not exist or belongs to someone else.
+    const document = await assertOwnedDocument(
+      req.params.documentId,
+      req.user.id,
+    );
+    const absolutePath = resolveDocumentAbsolutePath(document.storage_path);
+
+    try {
+      await fs.access(absolutePath);
+    } catch {
+      throw new NotFoundError(
+        "The stored PDF file is missing from the server.",
+      );
+    }
 
     res.type("application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `inline; filename="${encodeURIComponent(title)}"`,
+      `inline; filename="${encodeURIComponent(document.title)}"`,
     );
-
     res.sendFile(absolutePath, (error) => {
       if (error) next(error);
     });
@@ -89,7 +113,9 @@ export const getDocumentFileController = async (req, res, next) => {
     next(error);
   }
 };
+// ---- end T-24c ----
 
+// ---- T-23a (Abel): searchInDocumentController ----
 /**
  * Handles ranking a document's chunks against a search phrase.
  */
@@ -111,7 +137,9 @@ export const searchInDocumentController = async (req, res, next) => {
     next(error);
   }
 };
+// ---- end T-23a ----
 
+// ---- T-23b (Desalew): queryDocumentController ----
 /**
  * Handles answering a question grounded in the document's own text.
  */
@@ -132,7 +160,9 @@ export const queryDocumentController = async (req, res, next) => {
     next(error);
   }
 };
+// ---- end T-23b ----
 
+// ---- T-24d (Haymanot B.): deleteDocumentController ----
 /**
  * Handles removing a document, its file on disk, and its chunks.
  */
@@ -152,3 +182,4 @@ export const deleteDocumentController = async (req, res, next) => {
     next(error);
   }
 };
+// ---- end T-24d ----

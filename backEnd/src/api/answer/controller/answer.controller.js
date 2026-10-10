@@ -1,10 +1,9 @@
 import { StatusCodes } from "http-status-codes";
 import {
   createAnswerService,
-  deleteAnswerService,
   getAnswersService,
-  getSingleAnswerService,
   updateAnswerService,
+  deleteAnswerService,
 } from "../service/answer.service.js";
 
 /**
@@ -58,33 +57,7 @@ const getAnswersController = async (req, res, next) => {
 };
 
 /**
- * Handles fetching a single answer.
- *
- * @param {import('express').Request} req - The Express request object.
- * @param {import('express').Response} res - The Express response object.
- * @param {import('express').NextFunction} next - The Express next function.
- * @returns {Promise<void>}
- */
-const getSingleAnswerController = async (req, res, next) => {
-  try {
-    const answer = await getSingleAnswerService(Number(req.params.answerId));
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: "Answer fetched successfully.",
-      data: answer,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Handles updating one answer.
- *
- * @param {import('express').Request} req - The Express request object.
- * @param {import('express').Response} res - The Express response object.
- * @param {import('express').NextFunction} next - The Express next function.
- * @returns {Promise<void>}
+ * Handles updating an answer. Only its author can update it.
  */
 const updateAnswerController = async (req, res, next) => {
   try {
@@ -104,23 +77,17 @@ const updateAnswerController = async (req, res, next) => {
 };
 
 /**
- * Handles deleting one answer.
- *
- * @param {import('express').Request} req - The Express request object.
- * @param {import('express').Response} res - The Express response object.
- * @param {import('express').NextFunction} next - The Express next function.
- * @returns {Promise<void>}
+ * Handles deleting an answer. Only its author can delete it.
  */
 const deleteAnswerController = async (req, res, next) => {
   try {
-    const result = await deleteAnswerService({
+    await deleteAnswerService({
       answerId: Number(req.params.answerId),
       userId: req.user.id,
     });
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Answer deleted successfully.",
-      data: result,
     });
   } catch (error) {
     next(error);
@@ -130,7 +97,6 @@ const deleteAnswerController = async (req, res, next) => {
 export {
   createAnswerController,
   getAnswersController,
-  getSingleAnswerController,
   updateAnswerController,
   deleteAnswerController,
 };

@@ -1,6 +1,5 @@
 import { StatusCodes } from "http-status-codes";
 import { registerService, loginService } from "../service/auth.service.js";
-
 /**
  * Handles user registration requests.
  *
@@ -23,13 +22,12 @@ const registerController = async (req, res, next) => {
     res.status(StatusCodes.CREATED).json({
       success: true,
       message: "User registered successfully.",
-      user: newUser,
+      data: newUser,
     });
   } catch (error) {
     next(error);
   }
 };
-
 /**
  * Handles user login requests.
  *
@@ -47,8 +45,10 @@ const loginController = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Login successful.",
-      user: authResult.user,
-      token: authResult.token,
+      data: {
+        user: authResult.user,
+        token: authResult.token,
+      },
     });
   } catch (error) {
     next(error);

@@ -3,90 +3,112 @@
 .brandMark {
   width: 38px;
   height: 38px;
-  border-radius: 12px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   color: #fff;
-  background: linear-gradient(180deg, var(--orange) 0%, var(--orange-dark) 100%);
-  box-shadow: 0 10px 18px rgba(255, 107, 44, 0.18);
+  background: var(--orange);
 }
 
 .brandMark.inverse {
-  background: #fff;
+  background: var(--surface, #fff);
   color: var(--orange);
-  box-shadow: none;
 }
 
 .eyebrow {
-  color: var(--orange-deep);
+  color: var(--accent-text, #d74e00);
   font-weight: 800;
   font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
 .muted {
-  color: var(--slate-500);
+  color: var(--muted);
 }
 
 .formField {
   display: grid;
-  gap: 7px;
-  margin-bottom: 18px;
+  gap: 8px;
+  margin-bottom: 22px;
 }
 
 label {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--navy-800);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 small {
-  color: var(--slate-500);
+  color: var(--text-muted, #64748b);
   font-size: 0.76rem;
 }
 
-input,
-textarea,
-select {
+input {
   width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 12px 13px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-control, 8px);
+  background: var(--surface, #fff);
+  padding: 11px 12px;
   outline: none;
-  color: var(--navy-800);
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: #96a3b6;
+textarea {
+  width: 100%;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-control, 8px);
+  background: var(--surface, #fff);
+  padding: 11px 12px;
+  outline: none;
 }
 
 .replyEdit textarea {
   width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 12px 13px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-control, 8px);
+  background: var(--surface, #fff);
+  padding: 11px 12px;
   outline: none;
 }
 
 input:focus,
 textarea:focus,
-select:focus,
 .replyEdit textarea:focus {
-  border-color: rgba(255, 107, 44, 0.7);
-  box-shadow: 0 0 0 3px rgba(255, 107, 44, 0.08);
+  border-color: var(--orange, #ff6b00);
+  box-shadow: 0 0 0 3px var(--focus-ring, rgba(255, 107, 0, 0.2));
+}
+
+.designForm label {
+  color: var(--text, #172033);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.designForm small {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.designForm input {
+  min-height: 44px;
+  font-size: 0.9375rem;
+}
+
+.designForm input::placeholder,
+.designForm textarea::placeholder {
+  color: var(--text-muted, #64748b);
+  opacity: 0.8;
 }
 
 .formError {
-  color: #b42318;
-  background: #fff2f0;
-  border: 1px solid #ffd6d1;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 0.86rem;
+  color: var(--danger-text, #b42318);
+  background: var(--tint-red, #fff2f0);
+  border: 1px solid var(--tint-red-border, #ffd6d1);
+  border-radius: var(--radius-control, 8px);
+  padding: 11px 14px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0 0 16px;
+  overflow-wrap: anywhere;
 }
 
 .avatar {
@@ -95,11 +117,10 @@ select:focus,
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #a6f1ea 0%, #7ed9d0 100%);
+  background: #7fe1eb;
   color: #0f3b45;
   font-weight: 700;
   font-size: 0.78rem;
-  box-shadow: 0 8px 20px rgba(126, 217, 208, 0.25);
 }
 
 .avatar.small {
@@ -113,10 +134,10 @@ select:focus,
 }
 
 .panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-card, 12px);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
 }
 
 .screenCenter {
@@ -133,9 +154,9 @@ select:focus,
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 4px solid #e0e6ec;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border, #e5e7eb);
   border-top-color: var(--orange);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
@@ -143,51 +164,62 @@ select:focus,
 
 .threadList {
   display: grid;
-  gap: 0;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  box-shadow: var(--shadow-card);
+  gap: 12px;
+  background: transparent;
 }
 
 .threadRow {
   display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 12px;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 14px;
   padding: 18px 20px;
-  background: #fff;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-card, 12px);
+  background: var(--surface, #fff);
   position: relative;
-  border-bottom: 1px solid #edf2f7;
-  transition: background-color 0.18s ease, transform 0.15s ease;
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
-.threadRow:hover {
-  background: #fafcfe;
+.threadRow:hover,
+.threadRow:focus-visible {
+  background: var(--surface, #fff);
+  border-color: var(--border-strong, #cbd5e1);
+  box-shadow: var(--shadow-card-hover, 0 4px 12px rgba(15, 23, 42, 0.09));
+  transform: translateY(-1px);
 }
 
 .threadRow.yours {
-  background: linear-gradient(90deg, rgba(255, 107, 44, 0.08), rgba(255, 255, 255, 0.88));
-  border-left: 3px solid var(--orange);
-  padding-left: 17px;
+  background: var(--surface, #fff);
+  border-left: 3px solid var(--orange, #ff6b00);
+  padding-left: 18px;
+}
+
+.threadRow.yours:hover,
+.threadRow.yours:focus-visible {
+  background: var(--surface-soft, #f7f8fa);
 }
 
 .threadAvatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #99f0e3 0%, #73dbd0 100%);
-  color: #0c4b4c;
-  border: 1px solid rgba(38, 174, 157, 0.3);
+  background: #55efd8;
+  color: #073b34;
+  border: 1px solid #31d3bd;
   font-size: 0.78rem;
-  font-weight: 800;
 }
 
 .threadRow.yours .threadAvatar {
-  background: linear-gradient(180deg, #ffd7ba 0%, #ffc291 100%);
-  border-color: rgba(255, 107, 44, 0.5);
+  background: #8adddf;
+  border-color: #ff9c5a;
 }
 
 .designForm .formField {
@@ -195,17 +227,27 @@ select:focus,
 }
 
 .editorShell {
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-control, 8px);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface, #fff);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.editorShell:focus-within {
+  border-color: var(--orange, #ff6b00);
+  box-shadow: 0 0 0 3px var(--focus-ring, rgba(255, 107, 0, 0.2));
 }
 
 .editorShell textarea {
   border: 0;
   border-radius: 0;
-  min-height: 220px;
+  min-height: 240px;
   resize: vertical;
+  font-size: 0.9375rem;
+  line-height: 1.65;
 }
 
 .replyEdit textarea {
@@ -213,65 +255,42 @@ select:focus,
 }
 
 .aiPanel {
-  background: #fff7f0;
-  border-color: #ffd3b5;
+  background: var(--tint-orange, #fff7f0);
+  border-color: var(--tint-orange-border, #ffd3b5);
 }
 
 .aiPanel.compact {
   margin-top: 14px;
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .pageHeading {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
   gap: 20px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
-.questionTools {
-  display: flex;
-  align-items: end;
-  gap: 12px;
+.pageHeading > div {
+  min-width: 0;
 }
 
-.categoryFilter {
-  display: grid;
-  gap: 6px;
-  color: var(--slate-700);
-  font-size: 0.78rem;
-}
-
-.categoryFilter select {
-  min-width: 155px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
-  padding: 11px 12px;
-  color: var(--navy-800);
+.pageHeading > a {
+  margin-left: auto;
 }
 
 h1 {
   margin: 6px 0;
-  line-height: 1.15;
-}
-
-h2,
-h3,
-h4 {
-  color: var(--navy-900);
-  line-height: 1.2;
 }
 
 .questionList {
   display: grid;
   gap: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border, #dbe3ea);
+  border-radius: 10px;
   overflow: hidden;
-  background: var(--panel);
-  box-shadow: var(--shadow-card);
 }
 
 .textLink {
@@ -284,14 +303,38 @@ h4 {
   padding: 17px 16px;
   line-height: 1.65;
   font-size: 0.86rem;
-  color: var(--navy-800);
+  color: var(--text-secondary, #27364a);
   outline: none;
 }
 
 .proseContent {
   line-height: 1.7;
-  color: var(--navy-700);
+  color: var(--text-secondary, #334155);
   overflow-wrap: anywhere;
+}
+
+/* Headings written in posts ("# ..." renders as h3, "##" as h4, ...). */
+.proseContent h3,
+.proseContent h4,
+.proseContent h5,
+.proseContent h6 {
+  margin: 1.1em 0 0.4em;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+}
+
+.proseContent h3 {
+  font-size: 1.25rem;
+}
+
+.proseContent h4 {
+  font-size: 1.1rem;
+}
+
+.proseContent h5,
+.proseContent h6 {
+  font-size: 1rem;
 }
 
 *:first-child {
@@ -308,7 +351,7 @@ p {
 
 strong {
   font-weight: 800;
-  color: var(--navy-900);
+  color: var(--text, #172033);
 }
 
 em {
@@ -327,14 +370,13 @@ blockquote {
   margin: 1rem 0;
   padding: 0.7rem 1rem;
   border-left: 3px solid var(--orange);
-  background: rgba(255, 107, 44, 0.05);
-  color: var(--slate-700);
-  border-radius: 0 10px 10px 0;
+  background: var(--tint-orange, #fff7f1);
+  color: var(--text-secondary, #526177);
 }
 
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: #edf2f6;
+  background: var(--surface-muted, #edf2f6);
   border-radius: 4px;
   padding: 0.12rem 0.3rem;
   font-size: 0.9em;
@@ -343,10 +385,9 @@ code {
 pre {
   background: #172033;
   color: #edf5ff;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px;
   overflow: auto;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 pre code {
@@ -356,11 +397,32 @@ pre code {
 }
 
 a {
-  color: #db5a00;
+  color: var(--accent-text, #e65f0e);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .replyEdit .editorShell {
   margin-top: 12px;
+}
+
+/* Topic tag on a question ("react", "database", ...). Set automatically by the
+   AI when the question is posted. */
+.tagBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--surface-muted, #f1f4f7);
+  color: var(--text-secondary, #64748b);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Space around the tag under a question's title. */
+.tagRow {
+  margin: 2px 0 14px;
 }
