@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 import { UnauthenticatedError } from "../utility/errors/errors.js";
 import { AUTH_COOKIE_NAME } from "../utility/authCookie.js";
 

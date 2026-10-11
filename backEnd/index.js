@@ -1,7 +1,7 @@
 // Loads .env before anything else.
 import dotenv from "dotenv";
 dotenv.config();
-
+import cookieParser from "cookie-parser";
 import express from "express";
 import cors from "cors";
 import { db } from "./schema/db.config.js";
@@ -30,6 +30,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+app.use(cookieParser());
 app.use("/uploads/profiles", express.static(PROFILE_UPLOAD_DIR));
 
 //Main api
