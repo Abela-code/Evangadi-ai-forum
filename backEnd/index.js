@@ -19,13 +19,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://evangadi-ai-forum-pi.vercel.app/auth.app",
+  "https://evangadi-ai-forum-pi.vercel.app",
 ];
 
 app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 app.use("/uploads/profiles", express.static(PROFILE_UPLOAD_DIR));
