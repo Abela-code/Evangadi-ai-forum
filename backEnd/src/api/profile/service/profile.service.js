@@ -14,10 +14,8 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
 
-// Trim repeated whitespace so names and bio values are normalized before validation.
 const normalizeName = (value) => value?.trim() ?? "";
 
-// Keep the public response shape consistent even when the database uses snake_case.
 const formatProfile = (user) => ({
   id: user.user_id,
   firstName: user.first_name,
@@ -52,14 +50,12 @@ export const detectImageType = (buffer) => {
   return null;
 };
 
-// Only the profile owner may read or modify their own account data.
 const ensureOwnProfile = (requestedUserId, currentUserId) => {
   if (Number(requestedUserId) !== Number(currentUserId)) {
     throw new ForbiddenError("You can only access your own profile.");
   }
 };
 
-// Legacy avatars stored on disk need to be cleaned up when a user uploads a new image.
 const deleteProfileImageFile = async (avatarPath) => {
   if (!avatarPath || !avatarPath.startsWith("/uploads/profiles/")) return;
 
@@ -69,7 +65,6 @@ const deleteProfileImageFile = async (avatarPath) => {
   await fs.unlink(absolutePath).catch(() => {});
 };
 
-// Fetch the authenticated user's profile without exposing anyone else's data.
 export const getUserProfileService = async (requestedUserId, currentUserId) => {
   ensureOwnProfile(requestedUserId, currentUserId);
 
@@ -98,12 +93,10 @@ export const updateUserProfileService = async ({
 }) => {
   ensureOwnProfile(requestedUserId, currentUserId);
 
-  // Normalize user-entered values before validation to avoid whitespace-only input.
   const trimmedFirstName = normalizeName(firstName);
   const trimmedLastName = normalizeName(lastName);
   const trimmedBio = normalizeName(bio ?? "");
 
-  // Require a meaningful first and last name for account identity consistency.
   if (!trimmedFirstName || trimmedFirstName.length < 2) {
     throw new BadRequestError(
       "First name is required and must be at least 2 characters long.",
@@ -116,12 +109,10 @@ export const updateUserProfileService = async ({
     );
   }
 
-  // Keep biography length bounded to prevent oversized payloads in the database.
   if (trimmedBio.length > 500) {
     throw new BadRequestError("Bio must be 500 characters or fewer.");
   }
 
-  // Confirm the account still exists before updating it.
   const existingUser = await safeExecute(
     `SELECT user_id, first_name, last_name, email, bio, avatar
        FROM users
@@ -137,7 +128,6 @@ export const updateUserProfileService = async ({
   const previousAvatar = existingUser[0].avatar ?? null;
   let nextAvatar = previousAvatar;
 
-  // Accept only real image content and persist it separately from the base user row.
   if (file) {
     const mimeType = detectImageType(file.buffer);
     if (!mimeType) {
@@ -164,7 +154,6 @@ export const updateUserProfileService = async ({
     }
   }
 
-  // Apply the sanitized profile fields and keep the avatar reference in sync.
   const rows = await safeExecute(
     `UPDATE users
         SET first_name = ?, last_name = ?, bio = ?, avatar = ?
@@ -176,7 +165,6 @@ export const updateUserProfileService = async ({
     throw new NotFoundError("User not found.");
   }
 
-  // Re-read the updated row to return the normalized profile state to the client.
   const updatedUser = await safeExecute(
     `SELECT user_id, first_name, last_name, email, bio, avatar
        FROM users
@@ -187,7 +175,6 @@ export const updateUserProfileService = async ({
 
   const updatedProfile = formatProfile(updatedUser[0]);
 
-  // Refresh the JWT payload with the latest identity so the client sees the new name immediately.
   const token = jwt.sign(
     {
       id: updatedProfile.id,
@@ -206,7 +193,6 @@ export const updateUserProfileService = async ({
 
 // Public, like the old /uploads/profiles files: an <img> tag cannot send a
 // login token. Returns null when the user has no stored photo.
-// The image bytes are served directly so the browser can render the avatar without auth headers.
 export const getAvatarImageService = async (userId) => {
   const rows = await safeExecute(
     `SELECT mime_type, image FROM user_avatars WHERE user_id = ? LIMIT 1`,

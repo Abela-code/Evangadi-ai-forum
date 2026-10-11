@@ -1,14 +1,16 @@
 /* Styles for Navbar. Scoped to this component. */
 
 .navbar {
-  height: 68px;
-  background: var(--sidebar-surface, var(--surface, #fff));
-  border-bottom: 1px solid var(--border, #e5e7eb);
+  height: 79px;
+  background: var(--surface, #fff);
+  border-bottom: 1px solid var(--border, #dfe6ed);
+  box-shadow: 0 1px 3px
+    rgba(var(--shadow-rgb, 15, 23, 42), calc(0.05 * var(--shadow-boost, 1)));
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(200px, 1fr) auto;
   align-items: center;
-  gap: 20px;
-  padding: 0 24px;
+  gap: 24px;
+  padding: 0 22px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -20,16 +22,12 @@
 }
 
 .navbarPageTitle strong {
-  color: var(--text, #172033);
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 0.98rem;
 }
 
 .navbarPageTitle small {
-  font-size: 0.75rem;
-  color: var(--text-secondary, #64748b);
-  line-height: 1.35;
+  font-size: 0.68rem;
+  color: var(--text-secondary, #475569);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -39,9 +37,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--surface-soft, #f7f8fa);
-  border-radius: var(--radius-control, 8px);
+  border: 1px solid var(--border, #d6e0e8);
+  background: var(--surface-soft, #f1f5f9);
+  border-radius: 9px;
   padding: 0 12px;
   max-width: 520px;
   width: 100%;
@@ -55,7 +53,7 @@
   background: transparent;
   outline: 0;
   width: 100%;
-  font-size: 0.8125rem;
+  font-size: 0.82rem;
 }
 
 .navbarUser {
@@ -63,39 +61,25 @@
   grid-column: -2;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   white-space: nowrap;
-  border-left: 1px solid var(--border, #e5e7eb);
+  border-left: 1px solid var(--border, #e2e8f0);
   padding-left: 16px;
 }
 
 .navbarUser strong {
-  color: var(--text-secondary, #64748b);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.8rem;
 }
 
 .profileButton {
-  width: 44px;
-  height: 44px;
   border: 0;
   background: transparent;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
-}
-
-.profileButton:hover {
-  box-shadow: 0 0 0 3px var(--tint-orange, #fff1e6);
-}
-
-.profileButton:focus-visible {
-  outline: 2px solid var(--focus-ring, rgba(255, 107, 0, 0.28));
-  outline-offset: 2px;
 }
 
 @media (max-width: 980px) {
@@ -114,27 +98,11 @@
   .navbar {
     position: static;
     grid-template-columns: 1fr auto;
-    gap: 12px;
-    padding: 0 14px;
   }
 }
 
 @media (max-width: 700px) {
   .navbarUser strong {
     display: none;
-  }
-
-  .navbarUser {
-    gap: 6px;
-    padding-left: 10px;
-  }
-
-  .profileButton {
-    width: 40px;
-    height: 40px;
-  }
-
-  .navbarPageTitle small {
-    max-width: min(52vw, 280px);
   }
 }

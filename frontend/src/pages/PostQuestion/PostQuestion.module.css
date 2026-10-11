@@ -2,13 +2,12 @@
 
 .guidanceCard {
   background: var(--surface, #fff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
+  border: 1px solid var(--border, #dbe3ea);
+  border-radius: 12px;
 }
 
 .askIntro h1 {
-  font-size: clamp(1.5rem, 1.2rem + 1vw, 1.8rem);
-  line-height: 1.25;
+  font-size: 1.8rem;
   margin: 8px 0;
 }
 
@@ -29,43 +28,35 @@
 
 .guidanceCard {
   background: var(--surface-soft, #f1f5f9);
-  border: 1px solid var(--border, #e5e7eb);
-  border-left: 3px solid var(--orange, #ff6b00);
-  border-radius: var(--radius-card, 12px);
-  padding: 24px;
+  border: 1.5px solid var(--orange);
+  border-left-width: 4px;
+  padding: 26px 30px;
 }
 
 .guidanceCard h2 {
   margin: 0 0 8px;
-  color: var(--text, #172033);
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.15rem;
 }
 
 .guidanceCard p {
-  font-size: 0.875rem;
-  color: var(--text-secondary, #64748b);
-  line-height: 1.6;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #334155);
+  line-height: 1.55;
 }
 
 .guidanceCard li {
-  font-size: 0.875rem;
-  color: var(--text-secondary, #64748b);
-  line-height: 1.6;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #334155);
+  line-height: 1.55;
 }
 
 .guidanceCard h3 {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 18px 0 8px;
+  font-size: 0.9rem;
+  margin: 18px 0 6px;
 }
 
 .questionFormCard {
-  padding: clamp(20px, 3vw, 32px);
-}
-
-.questionFormCard :global(.question-form) {
-  max-width: 900px;
+  padding: clamp(18px, 3.5vw, 48px);
 }
 
 .aiTipsPanel {
@@ -74,13 +65,12 @@
 
 .aiTipsPanel h2 {
   margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.15rem;
 }
 
 .aiTipsPanel p {
   margin: 12px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.84rem;
   color: var(--text-secondary, #435268);
 }
 
@@ -96,7 +86,7 @@
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  font-size: 0.875rem;
+  font-size: 0.84rem;
   color: var(--text-secondary, #435268);
   line-height: 1.55;
 }
@@ -105,14 +95,4 @@
   flex: 0 0 auto;
   margin-top: 2px;
   color: var(--orange);
-}
-
-@media (max-width: 600px) {
-  .guidanceCard {
-    padding: 18px;
-  }
-
-  .questionFormCard {
-    padding: 18px;
-  }
 }

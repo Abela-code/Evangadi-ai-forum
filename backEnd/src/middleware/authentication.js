@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { UnauthenticatedError } from "../utility/errors/errors.js";
+import { AUTH_COOKIE_NAME } from "../utility/authCookie.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -7,14 +8,13 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
 
+// The login token lives in an httpOnly cookie set by the backend.
 const authenticateUser = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies?.[AUTH_COOKIE_NAME];
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     throw new UnauthenticatedError("Authentication invalid");
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
@@ -24,7 +24,7 @@ const authenticateUser = (req, res, next) => {
       lastName: payload.lastName,
     };
     next();
-  } catch (error) {
+  } catch {
     throw new UnauthenticatedError("Authentication invalid");
   }
 };

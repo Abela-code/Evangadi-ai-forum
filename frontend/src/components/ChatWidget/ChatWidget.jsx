@@ -169,7 +169,10 @@ export default function ChatWidget() {
     if (text.length < MIN_MESSAGE_CHARS || busy) return;
 
     if (!retry) {
-      setMessages((previous) => [...previous, { role: "user", content: text }]);
+      setMessages((previous) => [
+        ...previous,
+        { role: "user", content: text },
+      ]);
     }
     setInput("");
     setBusy(true);
@@ -293,11 +296,7 @@ export default function ChatWidget() {
                   {!isUser && <BotAvatar />}
                   <div
                     className={`${styles.msg} ${isUser ? styles.msgUser : styles.msgBot}${
-                      message.kind === "error"
-                        ? ` ${styles.msgError}`
-                        : message.kind === "notfound"
-                          ? ` ${styles.msgNotFound}`
-                          : ""
+                      message.kind === "error" ? ` ${styles.msgError}` : ""
                     }`}
                   >
                     <MessageText text={message.content} />

@@ -3,23 +3,19 @@
 /* styles related to the reply item container */
 .replyItem {
   background: var(--surface, #fff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
-  padding: 22px;
+  border: 1px solid var(--border, #dbe3ea);
+  border-radius: 10px;
+  padding: 28px;
 }
 
 .replyHeader {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
 }
 
 .replyAuthor {
   display: flex;
-  min-width: 0;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
@@ -28,29 +24,19 @@
 }
 
 .replyAuthor strong {
-  color: var(--text, #172033);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8rem;
 }
 
 .replyAuthor small {
-  color: var(--text-muted, #64748b);
-  font-size: 0.75rem;
+  color: var(--text-secondary, #475569);
+  font-size: 0.65rem;
 }
 
 .replyContent {
-  margin-top: 16px;
-  font-size: 0.9375rem;
+  margin-top: 12px;
+  font-size: 0.86rem;
   color: var(--text-secondary, #334155);
-  line-height: 1.7;
-}
-
-.replyItem .replyContent {
-  color: var(--text-secondary, #64748b);
-}
-
-.replyContent p {
-  margin: 0.75em 0;
+  line-height: 1.65;
 }
 
 .replyEditActions {
@@ -61,20 +47,5 @@
 
 .replyActions {
   display: flex;
-  flex: 0 0 auto;
-  gap: 6px;
-}
-
-@media (max-width: 600px) {
-  .replyItem {
-    padding: 18px;
-  }
-
-  .replyHeader {
-    align-items: flex-start;
-  }
-
-  .replyActions {
-    gap: 2px;
-  }
+  gap: 4px;
 }

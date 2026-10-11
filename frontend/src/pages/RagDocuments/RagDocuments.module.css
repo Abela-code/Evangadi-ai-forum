@@ -7,23 +7,20 @@
 
 .knowledgeHero {
   background: var(--surface, #ffffff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  border: 1px solid var(--border, #d8e0e8);
+  border-radius: 12px;
 }
 
 .knowledgeLibraryCard {
   background: var(--surface, #ffffff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  border: 1px solid var(--border, #d8e0e8);
+  border-radius: 12px;
 }
 
 .knowledgeMainCard {
   background: var(--surface, #ffffff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  border: 1px solid var(--border, #d8e0e8);
+  border-radius: 12px;
 }
 
 .knowledgeHero {
@@ -42,8 +39,7 @@
 .knowledgeHero h1 {
   margin: 0 0 9px;
   color: var(--text, #0f1f3d);
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 27px;
   line-height: 1.2;
 }
 
@@ -122,48 +118,33 @@
 
 .knowledgeFileButton,
 .knowledgeUploadButton {
-  min-height: 40px;
+  min-height: 39px;
   padding: 0 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border-radius: var(--radius-control, 8px);
-  font-size: 0.875rem;
-  font-weight: 600;
+  gap: 7px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
   white-space: nowrap;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
 }
 
 .knowledgeFileButton {
-  border: 1px solid var(--border, #e5e7eb);
+  border: 1px solid var(--border, #cfd9e4);
   background: var(--surface, #ffffff);
-  color: var(--text, #172033);
+  color: var(--text, #0f1f3d);
   cursor: pointer;
 }
 
-.knowledgeFileButton:hover:not(.disabled) {
-  background: var(--surface-soft, #f7f8fa);
-}
-
 .knowledgeUploadButton {
-  border: 1px solid var(--primary, #ff6b00);
-  background: var(--primary, #ff6b00);
+  border: 1px solid #ff9f62;
+  background: #ff9f62;
   color: #ffffff;
 }
 
-.knowledgeUploadButton:hover:not(:disabled) {
-  border-color: var(--primary-hover, #e85f00);
-  background: var(--primary-hover, #e85f00);
-}
-
 .knowledgeUploadButton:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -177,34 +158,25 @@
 .knowledgeDocumentList {
   margin-top: 18px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .knowledgeDocumentItem {
   width: 100%;
-  padding: 12px;
+  padding: 12px 10px;
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-control, 8px);
-  background: var(--surface-soft, #f7f8fa);
+  border: 1px solid var(--border, #d5dfe8);
+  border-radius: 8px;
+  background: var(--surface-muted, #edf4f8);
   text-align: left;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.knowledgeDocumentItem:hover {
-  border-color: var(--border-strong, #cbd5e1);
-  background: var(--surface, #fff);
 }
 
 .knowledgeDocumentItem.active {
-  border-color: var(--tint-orange-border, #ffd2b0);
-  box-shadow: inset 3px 0 0 var(--orange, #ff6b00);
-  background: var(--tint-orange, #fff1e6);
+  border-color: #ff6b00;
+  box-shadow: inset 3px 0 0 #ff6b00;
+  background: var(--tint-orange, #fff7f0);
 }
 
 .knowledgeDocumentItem > div {
@@ -216,8 +188,7 @@
 .knowledgeDocumentItem strong {
   overflow: hidden;
   color: var(--text, #111f37);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -322,10 +293,6 @@
 }
 
 @media (max-width: 620px) {
-  .knowledgeHero h1 {
-    font-size: 24px;
-  }
-
   .knowledgeHero {
     padding: 18px;
   }
@@ -359,14 +326,14 @@
 
 .ragHit {
   background: var(--surface, #fff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
-  padding: 16px;
+  border: 1px solid var(--border, #dbe3ea);
+  border-radius: 9px;
+  padding: 14px 16px;
 }
 
 .ragHit p {
   margin: 8px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.84rem;
   line-height: 1.6;
   color: var(--text-secondary, #334155);
 }
@@ -379,7 +346,7 @@
 }
 
 .ragHitIndex {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -473,60 +440,46 @@
 }
 
 .ragActionButton {
-  min-height: 40px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   border: 0;
-  border-radius: var(--radius-control, 8px);
-  background: var(--primary, var(--orange));
+  border-radius: 8px;
+  background: var(--orange);
   color: #fff;
-  font-weight: 600;
-  font-size: 0.875rem;
-  padding: 0 16px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 9px 16px;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
 }
 
 .ragActionButton:hover:not(:disabled) {
-  background: var(--primary-hover, var(--orange-dark));
+  background: var(--orange-dark);
 }
 
 .ragActionButton:disabled {
   opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.ragActionButton:active:not(:disabled) {
-  transform: translateY(1px);
+  cursor: default;
 }
 
 .ragNotice {
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
   background: var(--surface-muted, #eef2f6);
-  padding: 28px 24px;
+  border-radius: 10px;
+  padding: 34px 28px;
   text-align: center;
-  color: var(--text-secondary, #64748b);
-  font-size: 0.875rem;
+  color: var(--text-secondary, #334155);
+  font-size: 0.88rem;
   line-height: 1.6;
-  overflow-wrap: anywhere;
 }
 
 .ragError {
   margin: 4px 0 0;
-  background: var(--tint-red, #fef2f2);
-  border: 1px solid var(--tint-red-border, #fecaca);
-  border-radius: var(--radius-control, 8px);
-  padding: 11px 13px;
-  color: var(--danger-text, #b91c1c);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
+  background: var(--tint-red, #fdeaea);
+  border: 1px solid var(--tint-red-border, #f3c0c0);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--danger-text, #a52424);
+  font-size: 0.8rem;
 }
 
 .ragLibraryNote {
@@ -579,12 +532,10 @@
 .ragNoticeReason {
   margin-top: 10px !important;
   display: inline-block;
-  background: var(--tint-red, #fef2f2);
-  border: 1px solid var(--tint-red-border, #fecaca);
-  border-radius: var(--radius-control, 8px);
-  padding: 10px 14px;
-  color: var(--danger-text, #b91c1c);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
+  background: var(--tint-red, #fdeaea);
+  border: 1px solid var(--tint-red-border, #f3c0c0);
+  border-radius: 8px;
+  padding: 9px 14px;
+  color: var(--danger-text, #a52424);
+  font-size: 0.82rem;
 }

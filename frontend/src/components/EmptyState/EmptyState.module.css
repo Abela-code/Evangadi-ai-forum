@@ -1,7 +1,7 @@
 /* Styles for EmptyState. Scoped to this component. */
 
 .emptyState {
-  min-height: 160px;
+  min-height: 180px;
   display: grid;
   place-items: center;
   text-align: center;
@@ -9,41 +9,10 @@
   gap: 10px;
   padding: 24px;
   background: var(--surface-soft, #f1f5f9);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
-}
-
-.emptyState h2,
-.emptyState h3 {
-  margin: 0;
-  color: var(--text, #172033);
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.emptyState p {
-  max-width: 440px;
-  margin: 0;
-  color: var(--text-secondary, #64748b);
-  font-size: 0.875rem;
-  line-height: 1.55;
-  overflow-wrap: anywhere;
+  border: 1px dashed var(--border, #e2e8f0);
+  border-radius: 12px;
 }
 
 .emptyState svg {
-  width: 24px;
-  height: 24px;
   color: var(--text-muted, #94a3b8);
-}
-
-.emptyState > :global(a),
-.emptyState > :global(button) {
-  margin-top: 4px;
-}
-
-@media (max-width: 520px) {
-  .emptyState {
-    min-height: 140px;
-    padding: 20px 16px;
-  }
 }

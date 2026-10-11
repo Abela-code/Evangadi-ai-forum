@@ -15,9 +15,7 @@
 }
 
 .topicsIntro h1 {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 1.8rem;
   margin: 8px 0;
 }
 
@@ -29,17 +27,13 @@
 }
 
 .topicsList {
-  border: 0;
-  border-radius: 0;
-  overflow: visible;
+  border: 1px solid var(--border, #dbe3ea);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 @media (max-width: 700px) {
   .topicsIntro {
     flex-direction: column;
-  }
-
-  .topicsIntro h1 {
-    font-size: 24px;
   }
 }

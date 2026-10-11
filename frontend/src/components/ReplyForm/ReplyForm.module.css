@@ -7,43 +7,32 @@
 }
 
 .replyFormDisabled {
-  background: var(--surface-soft, #f7f8fa);
-  border: 1px dashed var(--border-strong, #cbd5e1);
-  border-radius: var(--radius-control, 8px);
-  padding: 16px;
+  background: var(--surface-soft, #f8fafb);
+  border: 1px dashed var(--border-strong, #cbd5df);
+  border-radius: 8px;
+  padding: 18px;
   color: var(--text-muted, #64748b);
   text-align: center;
-}
-
-.replyFormDisabled p {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
 }
 
 .answerHelperRow {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 12px;
   color: var(--text-muted, #64748b);
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-size: 0.71rem;
 }
 
 .replyFormActions {
-  margin-top: 20px;
+  margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid var(--border, #e5e7eb);
+  border-top: 1px solid var(--border, #e6ebf0);
 }
 
 @media (max-width: 700px) {
   .answerHelperRow {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .replyFormActions {
-    margin-top: 16px;
   }
 }

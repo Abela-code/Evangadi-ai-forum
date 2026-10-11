@@ -29,13 +29,13 @@
 
 .formField {
   display: grid;
-  gap: 8px;
-  margin-bottom: 22px;
+  gap: 7px;
+  margin-bottom: 18px;
 }
 
 label {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 small {
@@ -45,70 +45,53 @@ small {
 
 input {
   width: 100%;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-control, 8px);
+  border: 1px solid var(--border, #d4dde6);
+  border-radius: 8px;
   background: var(--surface, #fff);
-  padding: 11px 12px;
+  padding: 12px 13px;
   outline: none;
 }
 
 textarea {
   width: 100%;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-control, 8px);
+  border: 1px solid var(--border, #d4dde6);
+  border-radius: 8px;
   background: var(--surface, #fff);
-  padding: 11px 12px;
+  padding: 12px 13px;
   outline: none;
 }
 
 .replyEdit textarea {
   width: 100%;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-control, 8px);
+  border: 1px solid var(--border, #d4dde6);
+  border-radius: 8px;
   background: var(--surface, #fff);
-  padding: 11px 12px;
+  padding: 12px 13px;
   outline: none;
 }
 
-input:focus,
-textarea:focus,
+input:focus {
+  border-color: #f58a48;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08);
+}
+
+textarea:focus {
+  border-color: #f58a48;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08);
+}
+
 .replyEdit textarea:focus {
-  border-color: var(--orange, #ff6b00);
-  box-shadow: 0 0 0 3px var(--focus-ring, rgba(255, 107, 0, 0.2));
-}
-
-.designForm label {
-  color: var(--text, #172033);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.designForm small {
-  font-size: 0.8125rem;
-  line-height: 1.45;
-}
-
-.designForm input {
-  min-height: 44px;
-  font-size: 0.9375rem;
-}
-
-.designForm input::placeholder,
-.designForm textarea::placeholder {
-  color: var(--text-muted, #64748b);
-  opacity: 0.8;
+  border-color: #f58a48;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08);
 }
 
 .formError {
   color: var(--danger-text, #b42318);
   background: var(--tint-red, #fff2f0);
   border: 1px solid var(--tint-red-border, #ffd6d1);
-  border-radius: var(--radius-control, 8px);
-  padding: 11px 14px;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin: 0 0 16px;
-  overflow-wrap: anywhere;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.86rem;
 }
 
 .avatar {
@@ -135,9 +118,8 @@ textarea:focus,
 
 .panel {
   background: var(--surface, #fff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
+  border: 1px solid var(--border, #dbe3ea);
+  border-radius: 12px;
 }
 
 .screenCenter {
@@ -154,9 +136,9 @@ textarea:focus,
 }
 
 .spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--border, #e5e7eb);
+  width: 32px;
+  height: 32px;
+  border: 4px solid var(--border, #e0e6ec);
   border-top-color: var(--orange);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
@@ -164,45 +146,32 @@ textarea:focus,
 
 .threadList {
   display: grid;
-  gap: 12px;
-  background: transparent;
+  gap: 8px;
+  background: var(--surface-soft, #f8fafc);
 }
 
 .threadRow {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 14px;
-  padding: 18px 20px;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-card, 12px);
+  grid-template-columns: 56px 1fr;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border, #e3e9ee);
   background: var(--surface, #fff);
   position: relative;
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.05));
-  text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
+  box-shadow:
+    0 1px 3px
+      rgba(var(--shadow-rgb, 15, 23, 42), calc(0.1 * var(--shadow-boost, 1))),
+    0 -1px 0 var(--border, #e3e9ee);
 }
 
-.threadRow:hover,
-.threadRow:focus-visible {
-  background: var(--surface, #fff);
-  border-color: var(--border-strong, #cbd5e1);
-  box-shadow: var(--shadow-card-hover, 0 4px 12px rgba(15, 23, 42, 0.09));
-  transform: translateY(-1px);
+.threadRow:hover {
+  background: var(--surface-soft, #fafcfd);
 }
 
 .threadRow.yours {
-  background: var(--surface, #fff);
-  border-left: 3px solid var(--orange, #ff6b00);
-  padding-left: 18px;
-}
-
-.threadRow.yours:hover,
-.threadRow.yours:focus-visible {
-  background: var(--surface-soft, #f7f8fa);
+  background: var(--surface-soft, #fafcfe);
+  border-left: 3px solid var(--orange);
+  padding-left: 17px;
 }
 
 .threadAvatar {
@@ -227,27 +196,16 @@ textarea:focus,
 }
 
 .editorShell {
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius-control, 8px);
+  border: 1px solid var(--border, #d4dde6);
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--surface, #fff);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.editorShell:focus-within {
-  border-color: var(--orange, #ff6b00);
-  box-shadow: 0 0 0 3px var(--focus-ring, rgba(255, 107, 0, 0.2));
 }
 
 .editorShell textarea {
   border: 0;
   border-radius: 0;
-  min-height: 240px;
+  min-height: 220px;
   resize: vertical;
-  font-size: 0.9375rem;
-  line-height: 1.65;
 }
 
 .replyEdit textarea {
@@ -269,16 +227,6 @@ textarea:focus,
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.pageHeading > div {
-  min-width: 0;
-}
-
-.pageHeading > a {
-  margin-left: auto;
 }
 
 h1 {
@@ -412,17 +360,24 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: var(--radius-sm, 6px);
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--surface-muted, #f1f4f7);
-  color: var(--text-secondary, #64748b);
-  font-size: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--tint-orange-border, #fed7bd);
+  background: var(--tint-orange, #fff4ec);
+  color: var(--accent-text, #d95500);
+  font-size: 0.62rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.5;
   white-space: nowrap;
 }
 
 /* Space around the tag under a question's title. */
 .tagRow {
   margin: 2px 0 14px;
+}
+
+
+@media (max-width: 480px) {
+  .tagBadge {
+    display: none;
+  }
 }

@@ -225,13 +225,13 @@
 /* Room for the error icon is only reserved when there is one, so
    placeholders are not clipped on narrow phones */
 .authInputWrap.hasError input {
-  border-color: var(--danger-text, #b91c1c);
+  border-color: #ef4444;
   padding-right: 42px;
 }
 
 .authInputWrap.hasError input:focus {
-  border-color: var(--danger-text, #b91c1c);
-  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
 }
 
 .authErrorIcon {
@@ -242,7 +242,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--danger-text, #b91c1c);
+  color: #dc2626;
   pointer-events: none;
 }
 
@@ -260,13 +260,13 @@
 }
 
 .passwordWrap.hasError input {
-  border-color: var(--danger-text, #b91c1c);
+  border-color: #ef4444;
   padding-right: 82px; /* eye toggle + error icon */
 }
 
 .passwordWrap.hasError input:focus {
-  border-color: var(--danger-text, #b91c1c);
-  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
 }
 
 .passwordErrorIcon {
@@ -277,7 +277,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--danger-text, #b91c1c);
+  color: #dc2626;
   pointer-events: none;
 }
 
@@ -290,7 +290,7 @@
   width: 36px;
   height: 36px;
   border: none;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: 6px;
   background: transparent;
   padding: 0;
   color: var(--text-secondary, #334155);
@@ -302,7 +302,6 @@
 
 .passwordToggle:hover {
   color: var(--text, #0f172a);
-  background: var(--surface-muted, #f1f4f7);
 }
 
 /* SUBMIT */
@@ -372,11 +371,10 @@
   border: 1px solid var(--tint-red-border, #fecaca);
   border-radius: 8px;
   background: var(--tint-red, #fef2f2);
-  color: var(--danger-text, #b91c1c);
+  color: #dc2626;
   font-size: 0.875rem;
   line-height: 1.5;
   overflow-wrap: anywhere; /* long backend messages / emails never overflow */
-  text-align: left;
 }
 
 .authValidationAlert svg {
@@ -398,7 +396,7 @@
   color: var(--success-text, #16a34a);
   font-size: 0.875rem;
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  overflow: hidden;
 }
 
 .authSuccessAlert svg {
@@ -427,40 +425,19 @@
 
 /* RESPONSIVE */
 
-/* On shorter desktop viewports, fit both panels without hiding their content. */
-@media (min-width: 901px) and (max-height: 800px) {
-  .authBrandPanel {
-    padding-top: 12px;
-    padding-bottom: 12px;
+/* Narrow two-column layout: the brand column is too slim for avatars
+   plus text, so the strip takes the full width */
+@media (max-width: 1100px) {
+  .authAvatars {
+    display: none;
   }
+}
 
-  .authIntro {
-    margin-top: 8px;
-    margin-bottom: 8px;
-  }
-
-  .authBenefit {
-    padding: 12px;
-    margin-bottom: 6px;
-  }
-
+/* Two-column layout on a very short window: drop the cohort strip so the
+   brand panel never forces the page to scroll */
+@media (min-width: 901px) and (max-height: 680px) {
   .authCohortRow {
-    --cohort-above: 8px;
-    --cohort-below: 6px;
-  }
-
-  .authCohort {
-    padding: 12px 10px;
-  }
-
-  .authFormPanel {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-
-  .authCard {
-    padding-top: clamp(20px, 3vh, 24px);
-    padding-bottom: clamp(20px, 3vh, 24px);
+    display: none;
   }
 }
 

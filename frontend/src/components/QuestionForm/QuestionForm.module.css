@@ -4,30 +4,16 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
   color: var(--text-secondary, #475569);
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-size: 0.72rem;
 }
 
 .formBottomActions {
-  margin-top: 28px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border, #e5e7eb);
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border, #e2e8ee);
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-}
-
-@media (max-width: 600px) {
-  .aiSuggestionRow {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .formBottomActions {
-    margin-top: 22px;
-    gap: 8px;
-  }
+  gap: 14px;
 }

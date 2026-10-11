@@ -6,7 +6,6 @@
   border-radius: 50%;
   display: inline-grid;
   place-items: center;
-  border: 1px solid var(--border, rgba(15, 23, 42, 0.12));
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -44,10 +43,7 @@
 }
 
 .large {
-  width: 104px;
-  height: 104px;
-  font-size: 1.875rem;
-  border: 2px solid var(--surface, #fff);
-  outline: 1px solid var(--border, rgba(15, 23, 42, 0.14));
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(15, 23, 42, 0.06));
+  width: 88px;
+  height: 88px;
+  font-size: 1.75rem;
 }

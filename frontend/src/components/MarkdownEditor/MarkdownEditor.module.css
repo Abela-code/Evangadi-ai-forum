@@ -22,7 +22,6 @@
   height: auto;
   justify-content: space-between;
   gap: 10px;
-  padding: 6px 10px;
 }
 
 .editorToolsLeft {
@@ -33,35 +32,29 @@
 }
 
 .editorTool {
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   display: grid;
   place-items: center;
   border: 0;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: 5px;
   background: transparent;
   color: var(--text-secondary, #34445a);
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .editorTool:hover {
   background: var(--surface, #fff);
   color: var(--orange);
-  box-shadow: 0 0 0 1px var(--border, #e5e7eb);
+  box-shadow: 0 0 0 1px var(--border, #d9e1e8);
 }
 
 .editorTool.active {
   background: var(--surface, #fff);
   color: var(--orange);
-  box-shadow: 0 0 0 1px var(--border, #e5e7eb);
-}
-
-.editorTool:focus-visible {
-  outline: 2px solid var(--focus-ring, rgba(255, 107, 0, 0.28));
-  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--border, #d9e1e8);
 }
 
 .editorCharacterCount {
@@ -71,7 +64,7 @@
 
 .markdownPreview {
   min-height: 220px;
-  padding: 16px;
+  padding: 17px 18px;
   background: var(--surface, #fff);
   overflow: auto;
 }

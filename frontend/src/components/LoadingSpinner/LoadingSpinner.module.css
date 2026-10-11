@@ -1,18 +1,10 @@
 /* Styles for LoadingSpinner. Scoped to this component. */
 
 .loadingState {
-  min-height: 160px;
+  min-height: 180px;
   display: grid;
   place-items: center;
   text-align: center;
   align-content: center;
-  gap: 12px;
-  padding: 24px 16px;
-}
-
-.loadingState p {
-  margin: 0;
-  color: var(--text-secondary, #64748b);
-  font-size: 0.875rem;
-  line-height: 1.5;
+  gap: 10px;
 }
